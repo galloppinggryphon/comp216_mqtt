@@ -39,6 +39,23 @@ Enable the formatter and isort in `settings.json` (user or workspace) like this:
 
 # Overview
 
+### The project is organzied as implicit (anonymous/folder based) packages.
+
+### Package structure
+
+```
+app/
+    api/
+    config/
+    gui/
+        gui/clients/
+        gui/devices/
+        gui/framework/
+    helpers/
+```
+
+---
+
 ![MQTT_diagram](/diagrams/MQTT_diagram.png)
 
 ### Class overview
