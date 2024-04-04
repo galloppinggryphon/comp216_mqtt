@@ -2,3 +2,4 @@ __TMP__/
 .venv/
 ~~*
 __pycache__
+.vscode
