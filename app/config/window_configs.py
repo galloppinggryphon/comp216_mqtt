@@ -1,4 +1,4 @@
-from app.helpers.window_config import WindowConfig
+from app.gui.framework.window_config import WindowConfig
 
 
 main_window_config = WindowConfig(

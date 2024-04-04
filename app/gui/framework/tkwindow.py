@@ -3,7 +3,7 @@ from tkinter.ttk import Style, Frame, Label
 from typing import Callable
 
 from app.config.themes import ThemeConfig
-from app.helpers.window_config import WindowConfig
+from app.gui.framework.window_config import WindowConfig
 
 
 class TKWindow:

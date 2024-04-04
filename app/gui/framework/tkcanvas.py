@@ -1,7 +1,7 @@
 from tkinter import Canvas, BOTH
 from tkinter.ttk import Frame
 from typing import Optional
-from app.helpers.point import Point
+from point import Point
 from config import AnchorTypes
 
 
