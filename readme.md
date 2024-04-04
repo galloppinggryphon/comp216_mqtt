@@ -14,7 +14,7 @@
 - autopep8 (code formatter): [https://marketplace.visualstudio.com/items?itemName=ms-python.autopep8](https://marketplace.visualstudio.com/items?itemName=ms-python.autopep8)
 - isort (import assistance): [https://marketplace.visualstudio.com/items?itemName=ms-python.isort](https://marketplace.visualstudio.com/items?itemName=ms-python.isort)
 
-Enable the formatter and isort in `settings.json` (user or workspace) like this:
+Enable the formatter and isort in `.vscode/settings.json` (user or workspace) like this:
 
 ```
 "[python]": {
@@ -26,8 +26,8 @@ Enable the formatter and isort in `settings.json` (user or workspace) like this:
 
 ## Running
 
-1.  Make sure mosquitto is running: `mosquitto -v` or just `mosquitto`
-2.  Run `python main.py` in the root folder
+1.  Make sure mosquitto is running: `mosquitto` or `mosquitto -v` (verbose)
+2.  Run `python main.py` in the `app` folder
 
 # Resources
 
