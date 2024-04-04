@@ -14,6 +14,6 @@
 
 # Overview
 
-[MQTT_diagram](./diagrams/MQTT_diagram.png)
+![MQTT_diagram](/diagrams/MQTT_diagram.png)
 
-[Class_overview](./diagrams/Class_overview.png)
+![Class_overview](/diagrams/Class_overview.png)
