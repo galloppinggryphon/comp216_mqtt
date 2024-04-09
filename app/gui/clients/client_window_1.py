@@ -5,7 +5,7 @@ from app.config import theme_config, window_configs
 
 class ClientWindow1(TKWindow):
     def __init__(self):
-        super().__init__(False, window_configs.client_window_1, theme_config.ThemeConfig, theme_config.window_style)
+        super().__init__(False, window_configs.client_window_1, theme_config.ThemeConfig, theme_config.window_styles)
         self.main_section()
 
     def main_section(self):

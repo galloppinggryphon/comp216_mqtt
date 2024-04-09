@@ -3,18 +3,17 @@ from tkinter import Tk, NSEW, EW, Toplevel
 from tkinter.ttk import Style, Frame, Label
 from typing import Callable, Optional, Type
 
-from app.config.themes import ThemeConfig
+from app.config.theme_config import ThemeConfig
 from app.gui.framework.window_config import WindowConfig
 
 
 class TKWindow:
-    """Wrapper around tk(). Provides scaffolding for configuration and GUI setup.
+    """Wrapper around tk()/toplevel(). Provides scaffolding for configuration and GUI setup.
 
-    Currently creates a window with three vertical sections (panes) that can be added to:
-    - Top (narrow, mainly header)
-    - Middle (main section)
-    - Bottom (narrow, for buttons or other things)
-
+    Creates a window with three rows (panes):
+    - TKWindow.top: narrow, mainly header
+    - TKWindow.main: middle section, main content
+    - TKWindow.bottom: narrow, for action buttons, navigation, other
 
     """
     window_config: WindowConfig
@@ -22,9 +21,8 @@ class TKWindow:
     main: Frame
     top: Frame
     bottom: Frame
-    sub_windows: list
 
-    def __init__(self, root: bool, config: WindowConfig, theme: type[ThemeConfig], window_style: Optional[Callable[..., Style]] = None):
+    def __init__(self, root: bool, config: WindowConfig, theme: type[ThemeConfig], window_styles: Optional[Callable] = None):
         super().__init__()
         self.window_config = config
         self.theme = theme
@@ -32,8 +30,9 @@ class TKWindow:
         # Create window and apply styles
         if root:
             self.window = Tk()
-            if window_style:
-                self.window.after(10, window_style)
+            if window_styles:
+                # self.window.after(10, window_styles)
+                window_styles(Style())
         else:
             self.window = Toplevel()
 
@@ -53,7 +52,7 @@ class TKWindow:
         win = self.window
         win.title(title)
         win.geometry(f"{w}x{h}")
-        win.config(bg=background)
+        win.config(bg=background) # type: ignore
 
         win.grid_columnconfigure(0, weight=1)
         win.grid_rowconfigure(0, weight=1)  # top_pane
@@ -68,7 +67,7 @@ class TKWindow:
         top_pane = Frame(self.window, padding=10, style="Header.TFrame")
         top_pane.grid(row=0, column=0, sticky=NSEW)
         Label(
-            top_pane, text=self.window_config.header_title, style="Header.TLabel"
+            top_pane, text=self.window_config.header_title, style="Header.TLabel" # type: ignore
         ).pack(expand=True)
         self.top = top_pane
 

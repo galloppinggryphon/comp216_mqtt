@@ -1,15 +1,15 @@
+### IMPORT ALL COMPONENTS FROM TTK IF POSSIBLE! ###
 from tkinter.ttk import Frame, Button, Label
-from app.api.data_generator import DataGenerator
-from app.api.mqtt_controller import MQTTController
-from app.config import theme_config, main_window_config, window_configs
+
+from app.api.iot_simulator import IoTSimulator
+from app.config import theme_config, window_configs
 from app.gui.clients.client_window_1 import ClientWindow1
 from app.gui.framework.tkwindow import TKWindow
-# from app.gui.framework.window_config import WindowConfig
 
 
 class MainWindow(TKWindow):
     def __init__(self):
-        super().__init__(True, main_window_config, theme_config.ThemeConfig, theme_config.window_style)
+        super().__init__(True, window_configs.main_window_config, theme_config.ThemeConfig, theme_config.window_styles)
 
         self.main_section()
 
@@ -39,6 +39,5 @@ class MainWindow(TKWindow):
 
     def start_sensor_1(self):
 
-        #TODO: this has to be threaded so it doesn't hang or jank when started
         #TODO: feedback on screen if connection fails
-        MQTTController.start_publisher('sensor_1')
+        IoTSimulator.start_publisher('temp_sensor')
