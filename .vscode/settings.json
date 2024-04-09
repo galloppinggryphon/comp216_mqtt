@@ -1,7 +1,8 @@
 {
     "[python]": {
         // (OPTIONAL) "editor.formatOnType": true,
-        "editor.defaultFormatter": "ms-python.black-formatter"
+        "editor.defaultFormatter": "ms-python.autopep8"
     },
     "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic",
 }
