@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 import json
 import logging
+import threading
 from time import sleep
-from typing import Any, Callable, NamedTuple, Optional, TypeVar, cast
+from typing import Any, Callable, Iterable, NamedTuple, Optional, TypeVar, cast
 from app.api.helpers.bool_signal import BoolSignal
 from app.api.helpers.iot_device_config import IoTDeviceConfig
 from app.api.mqtt_publisher import MQTTPublisher
@@ -25,6 +26,7 @@ class PublisherListItem:
     config: IoTDeviceConfig
     client: MQTTPublisher
     abort_signal: Optional[BoolSignal]
+    is_running: bool = False
 
 
 class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
@@ -103,14 +105,34 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         res = pub.client.connect()
         if res:
+            pub.is_running = True
             pub.abort_signal = BoolSignal()
-            self.__loop(pub)
+            # self.__loop(pub)
+            self.__run_in_thread(self.__loop, [pub])
+
+    def stop_publisher(self, pub_id: str):
+        pub = self.get_publisher(pub_id)
+
+        if not pub:
+            logging.error(f"Cannot stop publisher: '{pub_id}' does not exist.")
+            return
+
+        if not pub.is_running:
+            logging.warn(f"Cannot stop publisher: '{pub_id}' is not running.")
+            return
+
+        pub.abort_signal() # type: ignore
+
+    def __run_in_thread(self, fn: Callable, args: Iterable[Any] = []):
+        th = threading.Thread(target=fn, daemon=True, args=args) # Background thread
+        th.start()
+
 
     def __loop(self, pub: PublisherListItem):
         # Start device simulation
         abort_signal, frequency, payload_generator, topic = pub.abort_signal, pub.config.frequency, pub.config.payload_generator, pub.config.topic
 
-        logging.info("Simulator is running")
+        logging.info(f"Publisher '{pub.client.client_id}' is running")
 
         while abort_signal and not abort_signal.is_true:
 
@@ -118,13 +140,14 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
             sleep(frequency)  # Delay in seconds
             data = payload_generator()
-
-            logging.debug("payload_generator data:")
-            logging.debug(data)
+            logging.info(f"Publisher '{pub.client.client_id}': publish {data.id}")
+            # logging.debug(data)
 
             pub.client.publish(topic, data.to_json())
 
+        logging.info(f"Publisher '{pub.client.client_id}' stopped")
         pub.client.disconnect()
+        pub.is_running = False
 
     def add_message_handler(self, topic: str, callback: Callable):
         self.subscription_message_handlers[topic].append(callback)
