@@ -3,7 +3,7 @@
 ## Getting started with this repo
 
 1.  Clone this repo: `git clone https://github.com/galloppinggryphon/comp216_mqtt.git`
-2.  Create a virtualenv in the local folder: `python -m venv comp216_mqtt`
+2.  Open the `comp216_mqtt` folder and create a virtualenv: `python -m venv .venv`
 3.  Install dependencies (Paho MQTT client):  `pip install -r requirements.txt`
 4.  Install Eclipse Mosquitto broker: [https://mosquitto.org/](https://mosquitto.org/)
 
