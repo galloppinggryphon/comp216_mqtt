@@ -41,16 +41,18 @@ Enable the formatter and isort in `.vscode/settings.json` (user or workspace) li
 
 ### The project is organzied as implicit (anonymous/folder based) packages.
 
-### Package structure
+### Package structure:
 
 ```
 app/
     api/
+    	helpers/
     config/
+    	device_data/
     gui/
-        gui/clients/
-        gui/devices/
-        gui/framework/
+        clients/
+        devices/
+        framework/
     helpers/
 ```
 
