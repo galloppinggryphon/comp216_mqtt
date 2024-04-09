@@ -1,4 +1,4 @@
-from app.config.themes import ThemeConfig
+from app.config.theme_config import ThemeConfig
 from app.gui.framework.window_config import WindowConfig
 
 main_window_config = WindowConfig(

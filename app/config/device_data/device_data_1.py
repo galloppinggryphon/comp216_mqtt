@@ -3,15 +3,12 @@ from random import choice
 import time
 from typing import Any
 from app.api.data_generator import DataGenerator
-from app.api.mqtt.serializable_dataclass import SerializableDataclass
+from app.api.helpers.iot_device_config import PayloadBase
 
-start_id = 1000
-locations = ["Toronto", "Montreal", "Vancouver"]
 
-@SerializableDataclass
+# Type: dataclass
 @dataclass
-class Payload:
-    id: int
+class Payload(PayloadBase):
     location: str
     timecode: str
     barometric_pressure_mbar: float
@@ -23,7 +20,11 @@ class Payload:
     temperature_hourly: list[int]
 
 
+# Config
+start_id = 1000
+locations = ["Toronto", "Montreal", "Vancouver"]
 
+# Define generators
 barometric_gen = DataGenerator(type="brownian", value_range=(850, 1100), decimals=1)
 temp_gen = DataGenerator(type="brownian", count=24, value_range=(10, 35), decimals=1)
 precipitation_gen = DataGenerator(
@@ -32,11 +33,12 @@ precipitation_gen = DataGenerator(
 windspeed_gen = DataGenerator(type="brownian", value_range=(0, 50), count=1, decimals=1)
 
 
-
-def create_sensor_data():
+def generate_payload_data():
     start_id = +1
 
     location = choice(locations)
+
+    print(location)
 
     precipitation_mm_hourly: Any = precipitation_gen.values
     temperature_hourly: Any = temp_gen.values

@@ -1,5 +1,6 @@
-from app.config import themes, main_config as _main_config, window_configs
+# This file exports all the modules in this package (folder)
+# Imports are automatically re-exported
+from app.config import theme_config, main_config, window_configs, mqtt_config as _mqtt_config
 
-theme_config = themes
-main_config = _main_config
-main_window_config = window_configs.main_window_config
+mqtt_config = _mqtt_config.connection_settings
+device_config = _mqtt_config.device_config
