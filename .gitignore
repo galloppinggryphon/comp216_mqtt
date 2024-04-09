@@ -3,3 +3,4 @@ __TMP__/
 ~~*
 __pycache__
 .vscode
+*.bkp
