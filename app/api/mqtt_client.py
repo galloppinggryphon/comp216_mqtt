@@ -1,7 +1,10 @@
+import logging
 import random
 from typing import Optional
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
+
+id_range = (1000000,9999999)
 
 
 class MQTTClient:
@@ -33,27 +36,34 @@ class MQTTClient:
         self.mqttc.on_disconnect = self._on_disconnect
 
     def create_client_id(self, id: Optional[str] = None):
-        _id = id if id else random.randint(100000,999999)
+        _id = id if id else random.randint(*id_range)
         return f"{self.mode}_{_id}"
 
     def connect(self, blocking_loop=False, threaded_loop=False):
         self.blocking_loop = blocking_loop
         self.threaded_loop = threaded_loop
 
-        print(f"Client {self.client_id} is connecting (mode={self.mode})...")
+        logging.info(f"MQTT client {self.client_id} is connecting (mode={self.mode})...")
 
-        self.mqttc.connect(
+        try:
+            self.mqttc.connect(
             self.connection_settings["host"], self.connection_settings["port"]
         )
+        except Exception as ex:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            logging.error(message)
+            return False
 
         if blocking_loop:
             self.mqttc.loop_forever()
         elif threaded_loop:
             self.mqttc.loop_start()
 
+        return True
 
     def loop_forever(self):
-        print("self.mqttc.loop_forever()")
+        logging.info("self.mqttc.loop_forever()")
         self.mqttc.loop_forever()
 
     def loop_start(self):
@@ -67,14 +77,14 @@ class MQTTClient:
 
     def _on_connect(self, client, userdata, flags, reason_code, properties):
         if reason_code.is_failure:
-            print(
+            logging.error(
                 f"Failed to connect: {reason_code}."
             )  # loop_forever() will retry connection
         else:
-            print(f"Connected to {client.host}:{client.port}")
+            logging.info(f"Connected to {client.host}:{client.port}")
 
     def _on_disconnect(self, client, userdata, disconnect_flags, reason_code, properties):
-        print(f"Client {self.client_id} has disconnected ({str(reason_code)})")
+        logging.info(f"Client {self.client_id} has disconnected ({str(reason_code)})")
         client.loop_stop()
 
     def _parse_message(self, message: mqtt.MQTTMessage):

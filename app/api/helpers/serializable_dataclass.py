@@ -4,8 +4,8 @@ from numpy import ndarray
 def SerializableDataclass(cls):
     """
     Decorator that adds a serialization method to a dataclass.
-    Note: @dataclass must be the last decorator to be declared above the class signature.
-    Numpy safe.
+    Note: @dataclass must be the last decorator to be declared before the class signature.
+    Supports convesion of numpy ndarray.
     """
     class WrapClass(cls):
         def to_json(self):

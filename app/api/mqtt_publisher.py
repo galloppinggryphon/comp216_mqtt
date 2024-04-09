@@ -1,5 +1,6 @@
 from typing import Optional
-from app.api.mqtt.mqtt_subscriber import MQTTClient
+
+from app.api.mqtt_client import MQTTClient
 
 class MQTTPublisher(MQTTClient):
     def __init__(self, connection_settings,  id: Optional[str] = None):

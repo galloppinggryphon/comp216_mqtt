@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 import json
+import logging
 from typing import Callable, Optional, Type
 
-from app.api.mqtt.mqtt_client import MQTTClient
+from app.api.mqtt_client import MQTTClient
 
 
 @dataclass
@@ -25,17 +26,19 @@ class MQTTSubscriber(MQTTClient):
         self.options = MQTTSubscriberOptions
         self.mqttc.on_subscribe = self._on_subscribe
         self.mqttc.on_message = self._on_message
+        logging.info(f"Create subscriber {self.client_id}")
+
 
     def subscribe(self, topic):
         self.subscriptions.add(topic)
 
         if self.is_connected:
-            print(f"Subscribing to {topic}")
+            logging.info(f"Subscribing to {topic}")
             self.mqttc.subscribe(topic)
 
     def unsubscribe(self, topic):
         if not topic in self.subscriptions:
-            print(f"Error: Not subscribed to `{topic}, cannot unsubscribe.")
+            logging.info(f"Error: Not subscribed to `{topic}, cannot unsubscribe.")
             return
 
         self.subscriptions.remove(topic)
@@ -75,30 +78,30 @@ class MQTTSubscriber(MQTTClient):
 
     def _on_subscribe(self, client, userdata, mid, reason_code_list, properties):
         if reason_code_list[0].is_failure:
-            print(f"Broker rejected you subscription: {reason_code_list[0]}")
+            logging.error(f"Broker rejected you subscription: {reason_code_list[0]}")
         else:
-            print(f"Broker granted the following QoS: {reason_code_list[0].value}")
+            logging.info(f"Broker granted the following QoS: {reason_code_list[0].value}")
 
     def _on_message(self, client, userdata, message):
         data = self._parse_message(message)
 
         if self.options.log_message_received:
-            print(f'Received message (topic={data["topic"]})')
+            logging.info(f'Received message (topic={data["topic"]})')
         elif self.options.log_message_received_verbose:
-            print(data["topic"], ":", data["payload"])
+            logging.debug(data["topic"], ":", data["payload"])
 
         self.message_callback(data)
 
     def _on_connect(self, client, userdata, flags, reason_code, properties):
         if reason_code.is_failure:
-            print(
+            logging.error(
                 f"Failed to connect: {reason_code}."
             )  # loop_forever() will retry connection
         else:
-            print(f"Connected to {client.host}:{client.port}")
+            logging.info(f"Connected to {client.host}:{client.port}")
 
             if self.subscriptions:
-                print(f"Subscribing to {", ".join(self.subscriptions)}")
+                logging.info(f"Subscribing to {", ".join(self.subscriptions)}")
                 topics = [(topic, 1) for topic in self.subscriptions]
                 client.subscribe(topics)
 
