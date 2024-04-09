@@ -1,4 +1,5 @@
 from app.config.theme_config import ThemeConfig
+from app.config.mqtt_config import device_config
 from app.gui.framework.window_config import WindowConfig
 
 main_window_config = WindowConfig(
@@ -12,6 +13,14 @@ main_window_config = WindowConfig(
 client_window_1 = WindowConfig(
     window_title="Client 1 - COMP216 MQTT Project",
     header_title="Client 1",
+    width=800,
+    height=600,
+    background=ThemeConfig.background_colour
+)
+
+device_window_1 = WindowConfig(
+    window_title="Device 1 - COMP216 MQTT Project",
+    header_title=f"{device_config[0].name} (#1)",
     width=800,
     height=600,
     background=ThemeConfig.background_colour
