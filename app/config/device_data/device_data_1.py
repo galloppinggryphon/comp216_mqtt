@@ -4,6 +4,7 @@ import time
 from typing import Any
 from app.api.data_generator import DataGenerator
 from app.api.helpers.iot_device_config import PayloadBase
+from app.api.helpers.sequence_gen import sequence_gen
 
 
 # Type: dataclass
@@ -21,7 +22,7 @@ class Payload(PayloadBase):
 
 
 # Config
-start_id = 1000
+id_gen = sequence_gen(1000)
 locations = ["Toronto", "Montreal", "Vancouver"]
 
 # Define generators
@@ -34,12 +35,7 @@ windspeed_gen = DataGenerator(type="brownian", value_range=(0, 50), count=1, dec
 
 
 def generate_payload_data():
-    start_id = +1
-
     location = choice(locations)
-
-    print(location)
-
     precipitation_mm_hourly: Any = precipitation_gen.values
     temperature_hourly: Any = temp_gen.values
 
@@ -55,7 +51,7 @@ def generate_payload_data():
         weather_warnings.append("Extreme temperature warning")
 
     return Payload(
-        id=start_id,
+        id=id_gen.next(),
         location=location,
         timecode=time.asctime(),
         weather_warnings=weather_warnings,
