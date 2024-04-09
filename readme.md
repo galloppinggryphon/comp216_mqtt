@@ -19,7 +19,7 @@ Enable the formatter and isort in `.vscode/settings.json` (user or workspace) li
 ```
 "[python]": {
     // (OPTIONAL) "editor.formatOnType": true,
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "ms-python.autopep8"
 },
 "python.analysis.autoImportCompletions": true
 ```
@@ -46,9 +46,9 @@ Enable the formatter and isort in `.vscode/settings.json` (user or workspace) li
 ```
 app/
     api/
-    	helpers/
+        helpers/
     config/
-    	device_data/
+        device_data/
     gui/
         clients/
         devices/
@@ -58,8 +58,10 @@ app/
 
 ---
 
-![MQTT_diagram](/diagrams/MQTT_diagram.png)
-
 ### Class overview
 
-![Class_overview](/diagrams/Class_overview.png)
+![Class overview](/diagrams/Class_overview.png)
+
+### Broker
+
+![MQTT overview](/diagrams/MQTT_diagram.png)
