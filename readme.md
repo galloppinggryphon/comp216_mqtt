@@ -1,5 +1,15 @@
 # COMP216 MQTT PROJECT
 
+## Requirements
+
+Python 3.12
+
+Recent version of VSCode, with Python extension
+
+⚠️⚠️⚠️ **NOT COMPATIBLE WITH THE CODE RUNNER EXTENSION** ⚠️⚠️⚠️
+
+If you have Code Runner installed, it must be disabled for this project.
+
 ## Getting started with this repo
 
 1.  Clone this repo: `git clone https://github.com/galloppinggryphon/comp216_mqtt.git`
