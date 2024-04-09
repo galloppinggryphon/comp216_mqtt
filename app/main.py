@@ -38,7 +38,7 @@ class Main:
 
         IoTSimulator(mqtt_config)
         IoTSimulator.create_publisher(device_config[0])
-        IoTSimulator.start_publisher(device_config[0].id)
+        # IoTSimulator.start_publisher(device_config[0].id)
 
 
 
