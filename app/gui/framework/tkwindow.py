@@ -1,7 +1,7 @@
 from __future__ import annotations
 from tkinter import Tk, NSEW, EW, Toplevel
 from tkinter.ttk import Style, Frame, Label
-from typing import Callable, Optional, Type
+from typing import Callable, Optional, Type, final
 
 from app.config.theme_config import ThemeConfig
 from app.gui.framework.window_config import WindowConfig
@@ -18,9 +18,25 @@ class TKWindow:
     """
     window_config: WindowConfig
     theme: Type[ThemeConfig]
-    main: Frame
-    top: Frame
-    bottom: Frame
+    __main: Frame
+    __top: Frame
+    __bottom: Frame
+
+    @property
+    def top(self):
+        return self.__top
+
+    @property
+    def main(self):
+        return self.__main
+
+    @property
+    def bottom(self):
+        return self.__bottom
+
+    @property
+    def main_(self):
+        return self.__main
 
     def __init__(self, root: bool, config: WindowConfig, theme: type[ThemeConfig], window_styles: Optional[Callable] = None):
         super().__init__()
@@ -69,12 +85,12 @@ class TKWindow:
         Label(
             top_pane, text=self.window_config.header_title, style="Header.TLabel" # type: ignore
         ).pack(expand=True)
-        self.top = top_pane
+        self.__top = top_pane
 
     def _draw_main(self):
         main_pane = Frame(self.window)
         main_pane.grid(row=1, column=0, pady=20, padx=10, sticky=NSEW)
-        self.main = main_pane
+        self.__main = main_pane
 
     def _draw_action_pane(self):
         bottom_pane = Frame(self.window)
@@ -84,7 +100,7 @@ class TKWindow:
         bottom_pane.columnconfigure(3, weight=4)
         bottom_pane.grid(row=2, pady=10, sticky=EW)
 
-        self.bottom = bottom_pane
+        self.__bottom = bottom_pane
 
 
     def mainloop(self):
