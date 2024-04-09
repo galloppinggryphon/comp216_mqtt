@@ -10,7 +10,7 @@ from app.helpers.utils import (
 )
 
 GeneratorTypes = Literal[
-    "brownian", "constant", "dates", "gaussian", "pattern", "uniform"
+    "brownian", "constant", "dates", "exponential", "gaussian", "pattern", "uniform"
 ]
 
 TimeUnits = Literal["second", "minute", "hour", "day", "week", "month", "year"]
