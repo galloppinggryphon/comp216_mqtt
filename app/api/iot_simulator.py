@@ -93,22 +93,19 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         # pub.disconnect()
 
-        # print(pub.mqttc.host)
-
-        # pub = self.add_publisher(id)
-
         pub = self.get_publisher(pub_id)
-
         if not pub:
             logging.error(f"Cannot start publisher: '{pub_id}' does not exist.")
             return
 
-        res = pub.client.connect()
-        if res:
-            pub.is_running = True
-            pub.abort_signal = BoolSignal()
-            # self.__loop(pub)
-            self.__run_in_thread(self.__loop, [pub])
+        def _start():
+            res = pub.client.connect()
+            if res:
+                pub.is_running = True
+                pub.abort_signal = BoolSignal()
+                self.__loop(pub)
+
+        self.__run_in_thread(_start)
 
     def stop_publisher(self, pub_id: str):
         pub = self.get_publisher(pub_id)
@@ -134,11 +131,21 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         logging.info(f"Publisher '{pub.client.client_id}' is running")
 
+        # Short loops to capture aborts in a timely manner
+        short_sleep = 0.1
+        short_cycles = frequency if frequency <= short_sleep else frequency / short_sleep
+        counter = 0
+
         while abort_signal and not abort_signal.is_true:
+            counter += 1
+            if counter <= short_cycles:
+                sleep(short_sleep)  # Delay in seconds
+                continue
 
             # TODO: This may be a place to simulate one of the failure modes
 
-            sleep(frequency)  # Delay in seconds
+            counter = 0
+
             data = payload_generator()
             logging.info(f"Publisher '{pub.client.client_id}': publish {data.id}")
             # logging.debug(data)

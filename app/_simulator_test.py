@@ -9,5 +9,6 @@ Main.configure_logger()
 dev1 = device_config[0]
 
 IoTSimulator(mqtt_config)
-IoTSimulator.create_publisher(dev1)
+pub = IoTSimulator.create_publisher(dev1)
 IoTSimulator.start_publisher(dev1.id)
+pub.loop_forever()
