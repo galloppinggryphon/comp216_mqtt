@@ -28,15 +28,16 @@ from app.gui.framework.utils import shade, tint
 @dataclass
 class ThemeConfig:
     theme = "default"  # "clam"
-
+    neutral = "#919191"
     primary = "#158cba"
     primary_complement = "black"
-    secondary = "#919191"
+    secondary = "#c1f035"
     success = "#28b62c"
     info = "#75caeb"
     warning = "#ff851b"
     danger = "#ff4136"
     active = "#e5e5e5"
+    toggled = "#2b9600"
 
     main_bg_colour = "#e0f7fa"
     main_fg_colour = "#37474f"
@@ -73,6 +74,8 @@ def window_styles(style: Optional[Style] = None):
             disabled_bg = shade(TC.primary, 0.3)
             pressed = TC.warning
             hover = tint(TC.primary, 0.3)
+            selected = TC.toggled
+            hover_selected = tint(TC.toggled, 0.4)
 
             S.style(
                 bd=0,
@@ -88,67 +91,34 @@ def window_styles(style: Optional[Style] = None):
                 anchor=tk.CENTER,
             )
 
-            S.conditional(
-                bordercolor=[(["disabled"], bordercolor)],
-                foreground=[(["disabled"], disabled_fg)],
-                background=[
-                    (["disabled"], disabled_bg),
-                    (["pressed", "!disabled"], pressed),
-                    (["hover", "!disabled"], hover)
-                ],
-                darkcolor=[
-                    (["disabled"], disabled_bg),
-                    (["pressed", "!disabled"], pressed),
-                    (["hover", "!disabled"], hover)
-                ],
-                lightcolor=[
-                    (["disabled"], disabled_bg),
-                    (["pressed", "!disabled"], pressed),
-                    (["hover", "!disabled"], hover)
-                ],
+            S.map(
+                bordercolor={"disabled": bordercolor},
+                foreground={"disabled": disabled_fg},
+                background={
+                    "disabled": disabled_bg,
+                    ("pressed", "!disabled"): pressed,
+                    ("selected", "!disabled"): selected,
+                    ("hover", "selected", "!disabled"): hover_selected, #TODO: doesn't work, no hover effect with selected + hoved
+                    ("hover", "!selected", "!disabled"): hover,
+                },
+                darkcolor={
+                    "disabled": disabled_bg,
+                    ("pressed", "!disabled"): pressed,
+                    ("selected", "!disabled"): selected,
+                    ("hover", "!selected", "!disabled"): hover,
+                    ("hover", "selected", "!disabled"): hover_selected,
+                },
+                lightcolor={
+                    "disabled": disabled_bg,
+                    ("pressed", "!disabled"): pressed,
+                    ("selected", "!disabled"): selected,
+                    ("hover", "!selected", "!disabled"): hover,
+                    ("hover", "selected", "!disabled"): hover_selected,
+                },
             )
-
 
         with S.widget(W.Button, "Primary") as S:
-            bordercolor = TC.main_bg_colour
-            disabled_fg = shade(TC.primary, 0.5)
-            disabled_bg = shade(TC.primary, 0.3)
-            pressed = TC.warning
-            hover = tint(TC.primary, 0.3)
-
-            S.style(
-                bd=0,
-                foreground="white",
-                background=TC.primary,
-                bordercolor=bordercolor,
-                darkcolor=main,
-                lightcolor=main,
-                relief=tk.FLAT,
-                focusthickness=0,
-                focuscolor=main,
-                padding=(10, 5),
-                anchor=tk.CENTER,
-            )
-
-            S.conditional(
-                bordercolor=[(["disabled"], bordercolor)],
-                foreground=[(["disabled"], disabled_fg)],
-                background=[
-                    (["disabled"], disabled_bg),
-                    (["pressed", "!disabled"], pressed),
-                    (["hover", "!disabled"], hover)
-                ],
-                darkcolor=[
-                    (["disabled"], disabled_bg),
-                    (["pressed", "!disabled"], pressed),
-                    (["hover", "!disabled"], hover)
-                ],
-                lightcolor=[
-                    (["disabled"], disabled_bg),
-                    (["pressed", "!disabled"], pressed),
-                    (["hover", "!disabled"], hover)
-                ],
-            )
+            S.extend(W.Button)
 
         with S.widget(W.Label, "Header") as S:
             S.style(
