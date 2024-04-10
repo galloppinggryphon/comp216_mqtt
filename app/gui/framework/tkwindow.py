@@ -1,7 +1,7 @@
 from __future__ import annotations
-from tkinter import Tk, NSEW, EW, Toplevel
+from tkinter import Tk, NSEW, EW, Toplevel, Event, EventType
 from tkinter.ttk import Style, Frame, Label
-from typing import Callable, Optional, Type, final
+from typing import Any, Callable, Optional, Type, final
 
 from app.config.theme_config import ThemeConfig
 from app.gui.framework.window_config import WindowConfig
@@ -16,6 +16,7 @@ class TKWindow:
     - TKWindow.bottom: narrow, for action buttons, navigation, other
 
     """
+    style: Style
     window_config: WindowConfig
     theme: Type[ThemeConfig]
     __main: Frame
@@ -46,12 +47,13 @@ class TKWindow:
         # Create window and apply styles
         if root:
             self.window = Tk()
+            self.style = Style()
             if window_styles:
                 # self.window.after(10, window_styles)
-                window_styles(Style())
+                self.style = window_styles(Style())
+
         else:
             self.window = Toplevel()
-
 
         self._window_setup()
 
@@ -68,7 +70,7 @@ class TKWindow:
         win = self.window
         win.title(title)
         win.geometry(f"{w}x{h}")
-        win.config(bg=background) # type: ignore
+        win.config(bg=background)  # type: ignore
 
         win.grid_columnconfigure(0, weight=1)
         win.grid_rowconfigure(0, weight=1)  # top_pane
@@ -83,7 +85,7 @@ class TKWindow:
         top_pane = Frame(self.window, padding=10, style="Header.TFrame")
         top_pane.grid(row=0, column=0, sticky=NSEW)
         Label(
-            top_pane, text=self.window_config.header_title, style="Header.TLabel" # type: ignore
+            top_pane, text=self.window_config.header_title, style="Header.TLabel"  # type: ignore
         ).pack(expand=True)
         self.__top = top_pane
 
@@ -102,6 +104,27 @@ class TKWindow:
 
         self.__bottom = bottom_pane
 
+
+    def bind_event(self, event: EventType, callback: Callable):
+        """
+        Bind control events (keyboard, mouse, focus, etc) or virtual events to a callback.
+        """
+        event_key = f"<{event}>"
+        self.window.bind(event_key, callback, "%d") # type: ignore
+
+    def bind_virtual_event(self, event_name: str, callback: Callable):
+        event_key = f"<<{event_name}>>"
+        self.window.event_add(event_key, 'None')
+        self.window.bind(event_key, callback,"%d") # type: ignore
+
+    def trigger_virtual_event(self, event_name: str,  data: Optional[Any] = None):
+        Event.event_data = data # type: ignore
+        self.window.event_generate(f"<<{event_name}>>")
+
+    def create_virtual_event_trigger(self, event_name: str):
+        def trigger(data: Optional[Any] = None):
+            self.trigger_virtual_event(event_name, data)
+        return trigger
 
     def mainloop(self):
         self.window.mainloop()
