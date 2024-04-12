@@ -12,8 +12,9 @@ connection_settings = {
 }
 
 IoTDevice1 = IoTDeviceConfig(
-    id="temp_sensor",
-    name="Temperature Sensor",
+    id=1,
+    name="temp_sensor",
+    title="Temperature Sensor",
     type="temperature",
     topic="temp_sensor",
     frequency=2, #Delay between updates, in seconds
