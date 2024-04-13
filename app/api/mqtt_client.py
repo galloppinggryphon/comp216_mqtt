@@ -1,17 +1,18 @@
 import logging
 import random
-from typing import Optional
+from typing import Any, Optional
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
 
 id_range = (1000000,9999999)
 
-
 class MQTTClient:
+    __connection_error = ""
+    __is_looping = False
     mqttc: mqtt.Client
     mode = ""
-    blocking_loop = False
-    threaded_loop = False
+    loop: bool | None = None
+    asynchronous: bool | None = None
     connection_settings: dict
     client_id: str
 
@@ -22,6 +23,14 @@ class MQTTClient:
     @property
     def is_connected(self):
         return self.mqttc.is_connected()
+
+    @property
+    def is_looping(self):
+        return self.__is_looping
+
+    @property
+    def connection_error(self):
+        return self.__connection_error
 
     def __init__(self, mode, connection_settings, id = None):
         self.connection_settings = connection_settings
@@ -39,26 +48,34 @@ class MQTTClient:
         _id = id if id else random.randint(*id_range)
         return f"{self.mode}_{_id}"
 
-    def connect(self, blocking_loop=False, threaded_loop=False):
-        self.blocking_loop = blocking_loop
-        self.threaded_loop = threaded_loop
+    def connect(self, loop = False, asynchronous = False):
+        self.loop = loop
+        self.asynchronous = asynchronous
 
         logging.info(f"MQTT client {self.client_id} is connecting (mode={self.mode})...")
 
+        host, port = self.connection_settings["host"], self.connection_settings["port"]
+
         try:
-            self.mqttc.connect(
-            self.connection_settings["host"], self.connection_settings["port"]
-        )
+            if asynchronous:
+                self.mqttc.connect_async(host, port)
+
+                if loop:
+                    self.loop_start()
+
+            else:
+                self.mqttc.connect(host, port)
+
+                if loop:
+                    self.loop_forever()
+
+
         except Exception as ex:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             message = template.format(type(ex).__name__, ex.args)
             logging.error(message)
+            self.__connection_error = message
             return False
-
-        if blocking_loop:
-            self.mqttc.loop_forever()
-        elif threaded_loop:
-            self.mqttc.loop_start()
 
         return True
 
@@ -68,9 +85,11 @@ class MQTTClient:
 
     def loop_start(self):
         self.mqttc.loop_start()
+        self.__is_looping = True
 
     def loop_stop(self):
         self.mqttc.loop_stop()
+        self.__is_looping = False
 
     def disconnect(self):
         self.mqttc.disconnect()
@@ -90,15 +109,16 @@ class MQTTClient:
     def _parse_message(self, message: mqtt.MQTTMessage):
         obj = {
             "topic": message.topic,
-            "payload": message.payload.decode(),
+            "payload": message.payload.decode("utf-8"),
             "timestamp": message.timestamp,
             "qos": message.qos,
         }
         return obj
 
     def __repr__(self):
-        return f"""<MQTTClient id={self.client_id}>
+        return f"""[MQTTClient id={self.client_id}]
 mode: {self.mode}
-loop: {'blocking' if self.blocking_loop else ('threaded' if self.threaded_loop else 'no')}
+loop: {'blocking' if self.loop else ('threaded' if self.asynchronous else 'no')}
 is_connected: {self.is_connected}
+in_loop: {self.is_looping}
 host: {self.host}"""
