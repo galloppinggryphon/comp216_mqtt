@@ -26,15 +26,16 @@ class MQTTSubscriber(MQTTClient):
         self.options = MQTTSubscriberOptions
         self.mqttc.on_subscribe = self._on_subscribe
         self.mqttc.on_message = self._on_message
-        logging.info(f"Create subscriber {self.client_id}")
+        logging.info(f"Created subscriber {self.client_id}")
 
 
-    def subscribe(self, topic):
-        self.subscriptions.add(topic)
+    def subscribe(self, *topics: str):
+        for topic in topics:
+            self.subscriptions.add(topic)
 
-        if self.is_connected:
-            logging.info(f"Subscribing to {topic}")
-            self.mqttc.subscribe(topic)
+            if self.is_connected:
+                logging.info(f"Subscribing to {topic}")
+                self.mqttc.subscribe(topic)
 
     def unsubscribe(self, topic):
         if not topic in self.subscriptions:
