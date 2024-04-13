@@ -12,6 +12,7 @@ from app.api.iot_simulator import IoTSimulator
 from app.config import theme_config, window_configs
 from app.config import device_config
 from app.gui.clients.client_window_1 import ClientWindow1
+from app.gui.devices.device_window_1 import DeviceWindow1
 from app.gui.framework.tkwindow import TKWindow
 from app.gui.framework.toggle_button import ToggleButton
 
@@ -55,7 +56,7 @@ class MainWindow(TKWindow):
     def draw_client_list(self):
         parent = self.controls["client_list_container"]
         Label(parent, text="Clients", justify="left").pack(
-        padx=(spacing_x, spacing_x), pady=(0, 5))
+            padx=(spacing_x, spacing_x), pady=(0, 5))
 
         self.add_client(1)
         self.add_client(2)
@@ -85,16 +86,19 @@ class MainWindow(TKWindow):
 
         # Register callback
         def toggle_on_handler(current_state, new_state, event, is_virtual):
-             logging.debug(f'toggle_on_handler {(current_state, new_state, event, is_virtual)}')
-             if not current_state:
+            logging.debug(f'toggle_on_handler {
+                          (current_state, new_state, event, is_virtual)}')
+            if not current_state:
                 self.start_device(device_config, start_toggle)
-             return True
+            return True
 
         def toggle_off_handler(current_state, new_state, event, is_virtual):
-             logging.debug(f'toggle_off_handler {(current_state, new_state, event, is_virtual)}')
-             return False if is_virtual else True
+            logging.debug(f'toggle_off_handler {
+                          (current_state, new_state, event, is_virtual)}')
+            return False if is_virtual else True
 
-        start_toggle.on_toggle(toggle_on_callback=toggle_on_handler, toggle_off_callback=toggle_off_handler)
+        start_toggle.on_toggle(
+            toggle_on_callback=toggle_on_handler, toggle_off_callback=toggle_off_handler)
         self.controls[f"start_device_{device_config.id}"] = start_toggle
         # <-- TOGGLE BUTTON
 
@@ -109,7 +113,7 @@ class MainWindow(TKWindow):
         row = Frame(parent)
         row.pack(pady=(spacing_y, spacing_y), side=tk.TOP)
         Label(row, text=f"Client {client_id}", justify="left").pack(
-        padx=(spacing_x, spacing_x), pady=(0, 5), side=tk.LEFT)
+            padx=(spacing_x, spacing_x), pady=(0, 5), side=tk.LEFT)
 
         Button(row, text="Open", command=lambda: self.open_client_window(client_id)).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
@@ -117,16 +121,25 @@ class MainWindow(TKWindow):
     def open_client_window(self, client_id: int):
         match client_id:
             case 1:
-                if not self.window_exists('ClientWindow1'):
-                    self.windows['ClientWindow1'] = ClientWindow1()
+                self.open_window('ClientWindow1', ClientWindow1)
             case 2:
-                print(self.client_win)
+                ...
 
     def open_device_window(self, device_id: int):
-        match device_id:
-            case 1: ...
+        device = device_config[device_id - 1]
+        IoTSimulator.stop_publisher(device.name)
 
-    def window_exists(self, name):
+        # device_config =
+        match device_id:
+            case 1: self.open_window('DeviceWindow1', DeviceWindow1)
+
+    def open_window(self, name: str, Window: TKWindow):
+        if self.window_exists(name):
+            return
+
+        self.windows[name] = Window()
+
+    def window_exists(self, name: str):
         exists = name in self.windows
 
         if exists and self.windows[name].is_window_open():
@@ -135,15 +148,17 @@ class MainWindow(TKWindow):
 
         return False
 
-
     def start_device(self, device_config: IoTDeviceConfig, toggle_button: ToggleButton):
-        logging.info(f"Starting device #{device_config.id} ({device_config.name})")
-        IoTSimulator.start_publisher(device_config.name, lambda: toggle_button.trigger_toggle(False))
+        logging.info(f"Starting device #{
+                     device_config.id} ({device_config.name})")
+        IoTSimulator.start_publisher(
+            device_config.name, lambda: toggle_button.trigger_toggle(False))
 
     def stop_device(self, device_config: IoTDeviceConfig):
-        logging.info(f"Stopping device #{device_config.id} ({device_config.name})")
+        logging.info(f"Stopping device #{
+                     device_config.id} ({device_config.name})")
         toggle_button = self.controls[f"start_device_{device_config.id}"]
 
-        #Toggle off via virtual event
-        toggle_button.trigger_toggle(False)  # type: ignore
+        # Toggle off via virtual event
+        # toggle_button.trigger_toggle(False)  # type: ignore
         IoTSimulator.stop_publisher(device_config.name)

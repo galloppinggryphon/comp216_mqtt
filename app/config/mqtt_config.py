@@ -13,14 +13,27 @@ connection_settings = {
 
 IoTDevice1 = IoTDeviceConfig(
     id=1,
-    name="temp_sensor",
-    title="Temperature",
+    name="outdoor_sensor",
+    title="Outdoor",
     type="temperature",
-    topic="/sensors/temp",
+    topic="/temp/outdoor",
     frequency=0.5, #Delay between updates, in seconds
     failure_frequency=0, #Every nth transmission
     payload_generator=device_data_1.generate_payload_data
 )
+
+IoTDevice2 = IoTDeviceConfig(
+    id=2,
+    name="livingroom_sensor",
+    title="Living Room",
+    type="temperature",
+    topic="/temp/living_room",
+    frequency=1, #Delay between updates, in seconds
+    failure_frequency=0, #Every nth transmission
+    payload_generator=device_data_1.generate_payload_data
+)
+
+
 
 # IoTDevice2 = IoTDeviceConfig()
 # IoTDevice3 = IoTDeviceConfig()

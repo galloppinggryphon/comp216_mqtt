@@ -19,8 +19,11 @@ class ClientWindow1(TKWindow):
         self.temp_msg_count = tk.IntVar(value=0)
         self.temp_prev_msg = tk.StringVar(value="")
 
-        IoTSimulator.create_subscriber(1,[ '/sensors/temp'], self.on_mqtt_message)
+        IoTSimulator.create_subscriber(1,[ '/temp/outdoor'], self.on_sub1_message)
         IoTSimulator.start_subscriber(1)
+
+        IoTSimulator.create_subscriber(2,[ '/temp/living_room'], self.on_sub2_message)
+        IoTSimulator.start_subscriber(2)
 
         self.main_section()
 
@@ -57,7 +60,12 @@ class ClientWindow1(TKWindow):
         temp_prev_msg.pack(pady=(spacing_y, spacing_y), ipadx=5, ipady=5, expand=True, fill=tk.BOTH)
 
 
-    def on_mqtt_message(self, topic, data):
+    def on_sub1_message(self, topic, data):
+        i = self.temp_msg_count.get()
+        self.temp_msg_count.set(i + 1)
+        self.temp_prev_msg.set(f"{data}")
+
+    def on_sub2_message(self, topic, data):
         i = self.temp_msg_count.get()
         self.temp_msg_count.set(i + 1)
         self.temp_prev_msg.set(f"{data}")

@@ -36,7 +36,7 @@ class SubscriberListItem:
     stop: BoolSignal
     topics: set[str]
     # message_handler: Callable
-    worker: ThreadWorker
+    # worker: ThreadWorker
 
 
 class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
@@ -65,7 +65,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         sub.set_callback(self._subscriber_message_handler(on_message))
         sub.set_options(log_message_received=True)
-        sub.subscribe(*topics)
+        sub.subscribe(*topics) #topics: ['topic1', 'topic2'] => subscribe(topics[0], topics[1])
 
         list_item = SubscriberListItem(
             id=sub_id,
@@ -73,7 +73,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
             client=sub,
             stop=BoolSignal(True),
             topics=set(topics),
-            worker=...
+            # worker=...
         )
 
         self.subscribers.append(list_item)
@@ -174,7 +174,6 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
             else:
                 pub.on_complete_or_interrupted()
 
-        # self.__run_in_thread(_start_publisher)
         ThreadWorker(_start_publisher, background=True)
 
     def stop_publisher(self, pub_name: str):
@@ -191,6 +190,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
             return
 
         pub.stop()
+        pub.on_complete_or_interrupted()
 
     def __publisher_loop(self, pub: PublisherListItem):
         frequency, payload_generator, topic = pub.config.frequency, pub.config.payload_generator, pub.config.topic
