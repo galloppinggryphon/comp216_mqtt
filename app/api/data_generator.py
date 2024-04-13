@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Optional, Tuple
+from typing import Any, Literal, Optional, Tuple
 import numpy as np
 
 from app.helpers.iterable_class import IterableClass
@@ -10,11 +10,11 @@ from app.helpers.utils import (
 )
 
 GeneratorTypes = Literal[
-    "brownian", "constant", "dates", "exponential", "gaussian", "pattern", "uniform"
+    "brownian", "constant", "dates", "exponential", "gaussian", "pattern", "sequence", "uniform"
 ]
 
 TimeUnits = Literal["second", "minute", "hour", "day", "week", "month", "year"]
-
+TimeFormats = Literal["formatted", "raw", "epoch"]
 
 @dataclass
 class PatternConfig(IterableClass):
@@ -27,16 +27,31 @@ class GaussConfig(IterableClass):
     mean: float | int = 1
     std: float | int = 1
 
+class DateTimeValue:
+    time: str
+    date: str
+    date_time: str
+    date_time_raw: str
 
 @dataclass
 class DateTimeConfig(IterableClass):
     start_date_time: str = ""
+    start_time: str = ""
     interval: int = 1
     time_unit: TimeUnits = "day"
     time_format: str = "%Y-%m-%d"
+    format: TimeFormats = "formatted"
+
+@dataclass
+class SineConfig(IterableClass):
+    mean: float | int = 1
+    std: float | int = 1
 
 
 class DataGenerator:
+    # Return data as list (default is numpy array (ndarray))
+    aslist = False
+
     # Number of data points to generate
     count = 10
 
@@ -45,7 +60,7 @@ class DataGenerator:
 
     # Min and max value
     # Normalization range for normal/uniform distributions
-    range: Tuple[float | int, float | int] = (0, 10)
+    value_range: Optional[Tuple[float | int, float | int]] = None
 
     # Round numbers, set to -1 to disable
     decimals: int = -1
@@ -105,6 +120,9 @@ class DataGenerator:
             case "gaussian":
                 values = self.__generate_gaussian()
 
+            case "sequence":
+                values = self.__generate_sequence()
+
             case "pattern":
                 values = self.__generate_pattern()
 
@@ -114,26 +132,35 @@ class DataGenerator:
         if self.decimals >= 0:
             values = np.round(values, self.decimals)
 
+        if self.aslist:
+            return values.tolist()
+
         return values
 
     def __init__(
         self,
         type: GeneratorTypes = "uniform",
+        aslist = False,
         generate_int=False,
         count=None,
         value_range=None,
         decimals=-1,
         gauss_config: Optional[GaussConfig] = None,
         date_time_config: Optional[DateTimeConfig] = None,
+        sequence_start: Optional[int] = 0
     ):
         if value_range:
-            self.range = value_range
+            self.value_range = value_range
         if count:
             self.count = count
         if decimals > -1:
             self.decimals = decimals
+        if sequence_start:
+            self.sequence_start = sequence_start
         if type:
             self.type = type
+        if aslist:
+            self.aslist = aslist
         if generate_int:
             self.generate_int = generate_int
         if gauss_config:
@@ -181,10 +208,10 @@ class DataGenerator:
         value = None
         if self.decimals > 0:
             value = round(self.rng.uniform(
-                self.range[0], self.range[1]), self.decimals)
+                self.value_range[0], self.value_range[1]), self.decimals)
         elif self.decimals == 0:
             value = self.rng.integers(
-                self.range[0], self.range[1])  # type: ignore
+                self.value_range[0], self.value_range[1])  # type: ignore
         return np.full(self.count, value)
 
     def __generate_exponential(self):
@@ -223,33 +250,54 @@ class DataGenerator:
         values = np.arange(self.count)
         return np.vectorize(generate)(values)
 
+    def __generate_sequence(self):
+        return np.arange(self.sequence_start, self.count - 1)
+
+    def __generate_sine(self):
+        self.__setup_generator()
+        arr = np.arange(0, self.count - 1)
+        values = np.array([0])
+
+        Fs = 8000
+        f = 5
+        sample = 8000
+        x = np.arange(sample)
+        y = np.sin(2 * np.pi * f * x / Fs)
+
     def __generate_uniform(self):
         values = self.__generate_random()
         return self.__normalize_values(values)
 
     def __generate_date_sequence(self):
-        dt_conf = self.date_time_config
+        conf = self.date_time_config
 
-        if not dt_conf:
+        if not conf:
             raise ValueError(
                 "\nError! Required date_time_config has not been provided."
             )
 
-        start, interval, unit, time_format = (
-            dt_conf.start_date_time,
-            dt_conf.interval,
-            dt_conf.time_unit,
-            dt_conf.time_format,
+        start, start_time, interval, unit, time_format, return_format = (
+            conf.start_date_time,
+            conf.start_time,
+            conf.interval,
+            conf.time_unit,
+            conf.time_format,
+            conf.format
         )
 
-        if any(not x for x in dt_conf):
-            raise ValueError(
-                "\nError! Encountered empty configuration values in date_time_config."
-            )
+        # if any(not x for x in dt_conf):
+        #     raise ValueError(
+        #         "\nError! Encountered empty configuration values in date_time_config."
+        #     )
 
-        if unit in ["second", "minute", "hour"]:
-            # NP time parser only supports ISO string - add a random date that will be discarded later
-            start = f"1900-01-01 {start}"
+        if not start:
+            if not start_time:
+                raise ValueError(
+                    "\nError! No start time or start date configured. Set either start_date_time or start_time."
+                )
+            # NP time parser only supports ISO string
+            # If only start_time is given, add a random date that will be discarded later
+            start = f"1900-01-01 {start_time}"
 
         unit_code = NpDateTimeUnitCode[unit]
 
@@ -265,11 +313,20 @@ class DataGenerator:
             dtype="datetime64",
         )
 
-        timestrings = timearray_to_string(timearray, time_format)
-        return timestrings
+        if return_format == "epoch":
+            ecoch_time = timearray.astype('datetime64[s]').astype('int')
+            return ecoch_time
+        elif return_format == "formatted":
+            timestrings = timearray_to_string(timearray, time_format)
+            return timestrings
+
+        return timearray
 
     def __normalize_values(self, values, rescale=False):
-        lower, upper = self.range
+        if not self.value_range:
+            return values
+
+        lower, upper = self.value_range
         vmin, vmax = values.min(), values.max()
         coeff = upper - lower
 
@@ -283,3 +340,28 @@ class DataGenerator:
         normalized = intermediate_values * coeff + lower
 
         return normalized
+
+
+# time_gen = DataGenerator("dates", count=10, date_time_config=DateTimeConfig(
+#     start_date_time="2024-04-01",
+#     interval = 10,
+#     time_unit= "minute",
+#     format="epoch",
+#     time_format="%Y-%m-%d %H:%M",
+# ))
+
+# time_gen.values
+# print(time_gen.values)
+
+
+# gen = DataGenerator("gaussian", count = 10, aslist=True, decimals=0, gauss_config=GaussConfig(mean=0, std=10))
+# values = gen.values
+# print(gen.values)
+
+# def create_sequence(values, interval):
+#     seq = [(i * interval) + values[i] for i in range(0, len(values)-1)]
+#     return seq
+
+# seq = create_sequence(values, 100)
+
+# print(seq)
