@@ -12,17 +12,7 @@ from app.main import Main
 #Configure logger
 Main.configure_logger()
 
-# dev1 = device_config[0]
-dev1 = IoTDeviceConfig(
-    id=1,
-    name="temp_sensor",
-    title="Temperature",
-    type="temperature",
-    topic="/temp/living_room",
-    frequency=2, #Delay between updates, in seconds
-    failure_frequency=0, #Every nth transmission
-    payload_generator=device_data_1.generate_payload_data
-)
+dev1 = device_config[0]
 
 IoTSimulator(mqtt_config)
 
@@ -36,7 +26,7 @@ def subscriber_test():
         # logging.info(f"\ntopic: {topic}\n{payload}\n")
         ...
 
-    IoTSimulator.create_subscriber(1, ['/temp/living_room'], on_message)
+    IoTSimulator.create_subscriber(1, ['/temp/outdoor'], on_message)
     IoTSimulator.start_subscriber(1)
 
     # IoTSimulator.subscriber_wait()

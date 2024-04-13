@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any, Callable
 
 from app.api.helpers.serializable_dataclass import SerializableDataclass
 
@@ -24,4 +24,5 @@ class IoTDeviceConfig:
     topic: str
     frequency: int
     failure_frequency: int
+    data_config: dict[str, Any]
     payload_generator: Callable[..., PayloadBase]
