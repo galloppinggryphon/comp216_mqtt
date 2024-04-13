@@ -5,7 +5,6 @@ from typing import Optional, Callable
 
 from app.gui.framework.super_init import super_init
 
-# Hello
 type TToggleCallback = Callable[[bool, bool, Optional[bool], Optional[Event]], bool]
 '''- Callback arguments: function(current_toggle_state: bool, new_toggle_state: bool, event: Event|None, is_virtual_event: bool|None).
 - Must return new toggle state.
@@ -36,11 +35,10 @@ class ToggleButton(Button):
         self._toggle()
 
     def _toggle(self, set_toggled: Optional[bool] = None, is_virtual_event: Optional[bool] = False, event: Optional[Event] = None):
-        # If set_toggled is defined, set current state to its inverse
-        # is_toggled = self.is_toggled if set_toggled is None else not set_toggled
+        #New toggle state is the inverse of the current state OR the value of set_toggled
         new_toggle_state = set_toggled if set_toggled is not None else not self.is_toggled
 
-        logging.info(f'Button toggled (new state: {new_toggle_state})')
+        logging.info(f'ToggleButton toggled (new state: {new_toggle_state})')
 
         if new_toggle_state and self._on_toggle_on:
             new_toggle_state = self._on_toggle_on(self.is_toggled, new_toggle_state, event, is_virtual_event)
@@ -51,22 +49,6 @@ class ToggleButton(Button):
             self.state(['selected'])
         else:
             self.state(['!selected'])
-
-
-
-        # if is_toggled:
-        #     if self._allow_toggle_off or is_virtual_event:
-        #         self.state(['!selected'])
-        #         logging.info('Should be toggled off')
-
-        #         if self._on_toggle_off:
-        #             self._on_toggle_off()
-        # else:
-        #     if self._allow_toggle_on or is_virtual_event:
-        #         self.state(['selected'])
-
-        #         if self._on_toggle_on:
-        #             self._on_toggle_on()
 
     def off(self):
         self._toggle(False)
@@ -99,12 +81,12 @@ class ToggleButton(Button):
             self.bind(key, self._toggle_handler, "%d")  # type: ignore
 
     def trigger_toggle(self, new_state: Optional[bool] = None):
-        logging.info('Trigger toggle')
+        logging.info('Trigger toggle virtual event')
         Event.event_data = { "new_state": None if new_state is None else new_state } # type: ignore
         self.event_generate(self._virtual_event)
 
     def _toggle_handler(self, event: Optional[Event] = None):
-        print('Toggledigoggleti -->', self.is_toggled, event)
+        logging.debug(f'_toggle_handler event={event}')
         set_toggled = None
         is_virtual_event = False
 
