@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Literal, Optional, Tuple
+from typing import Any, Literal, Optional, Tuple
 import numpy as np
 
 
@@ -33,3 +33,7 @@ def timearray_to_string(time_array, format="%Y-%m-%d"):
 
     values = [convert(i) for i in time_array]
     return values
+
+
+def list_find(iterable, default=False, predicate=None) -> Any:
+    return next(filter(predicate, iterable), default)
