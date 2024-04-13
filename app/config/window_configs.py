@@ -5,7 +5,7 @@ from app.gui.framework.window_config import WindowConfig
 main_window_config = WindowConfig(
     window_title="COMP216 MQTT Project",
     header_title="MQTT Control Panel",
-    width=600,
+    width=700,
     height=400,
     background=ThemeConfig.background_colour
 )

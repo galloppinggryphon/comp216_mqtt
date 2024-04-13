@@ -126,21 +126,35 @@ def window_styles(style: Optional[Style] = None):
                 font=header_font
             )
 
+        with S.widget(W.Label, "Header") as S:
+            S.style(
+                background=TC.secondary_bg_colour,
+                font=header_font
+            )
+
         with S.widget(W.Label) as S:
             S.style(font=default_font)
 
         with S.widget(W.Frame, "Header") as S:
             S.style(background=TC.secondary_bg_colour)
 
-        with S.widget(W.Frame, "Header") as S:
-            S.style(background=TC.secondary_bg_colour)
+
+        with S.widget(W.Frame, "LightNeutral") as S:
+            S.style(
+                background="#d6eaf8",
+            )
+
+
+        # with S.widget(W.Frame, "Header") as S:
+        #     S.style(background=TC.secondary_bg_colour)
 
         with S.widget(W.Entry) as S:
             S.style(
                 padding=(4),
                 bd=4,
                 font=default_font,
-                foreground="black"
+                foreground="black",
+
             )
 
         # Apply styles

@@ -14,10 +14,10 @@ connection_settings = {
 IoTDevice1 = IoTDeviceConfig(
     id=1,
     name="temp_sensor",
-    title="Temperature Sensor",
+    title="Temperature",
     type="temperature",
-    topic="temp_sensor",
-    frequency=2, #Delay between updates, in seconds
+    topic="/sensors/temp",
+    frequency=0.5, #Delay between updates, in seconds
     failure_frequency=0, #Every nth transmission
     payload_generator=device_data_1.generate_payload_data
 )
