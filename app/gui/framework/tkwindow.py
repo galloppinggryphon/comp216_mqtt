@@ -128,3 +128,9 @@ class TKWindow:
 
     def mainloop(self):
         self.window.mainloop()
+
+    def on_window_close(self, callback: Callable):
+        self.window.protocol('WM_DELETE_WINDOW', callback)
+
+    def is_window_open(self):
+        return self.window.winfo_exists()
