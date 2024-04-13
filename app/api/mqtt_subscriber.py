@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import json
 import logging
 from typing import Callable, Optional, Type
+import paho.mqtt.client as mqtt
 
 from app.api.mqtt_client import MQTTClient
 
@@ -105,6 +106,16 @@ class MQTTSubscriber(MQTTClient):
                 logging.info(f"Subscribing to {", ".join(self.subscriptions)}")
                 topics = [(topic, 1) for topic in self.subscriptions]
                 client.subscribe(topics)
+
+    def _parse_message(self, message: mqtt.MQTTMessage):
+        obj = {
+            "topic": message.topic,
+            "payload": message.payload.decode("utf-8"),
+            "timestamp": message.timestamp,
+            "qos": message.qos,
+            #TODO?? "state": message.state
+        }
+        return obj
 
 
 

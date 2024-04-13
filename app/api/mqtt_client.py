@@ -106,15 +106,6 @@ class MQTTClient:
         logging.info(f"Client {self.client_id} has disconnected ({str(reason_code)})")
         client.loop_stop()
 
-    def _parse_message(self, message: mqtt.MQTTMessage):
-        obj = {
-            "topic": message.topic,
-            "payload": message.payload.decode("utf-8"),
-            "timestamp": message.timestamp,
-            "qos": message.qos,
-        }
-        return obj
-
     def __repr__(self):
         return f"""[MQTTClient id={self.client_id}]
 mode: {self.mode}
