@@ -10,9 +10,8 @@ class Main:
     def __init__(self):
         self.configure_logger()
         logging.info('Starting app')
-        # self.start_simulator_thread()
-        self.start_simulator()
-
+        logging.info('Starting simulator')
+        IoTSimulator(mqtt_config)
         app = MainWindow()
         app.mainloop()
 
@@ -26,13 +25,6 @@ class Main:
         logging.getLogger().addHandler(log_handler)
         logging.getLogger().setLevel(logging.DEBUG)
 
-    def start_simulator(self):
-        logging.info('Starting simulator')
-        IoTSimulator(mqtt_config)
-
-        # for device in device_config:
-        #     logging.info(f'Adding device: {device.name}')
-        #     IoTSimulator.create_publisher(device)
 
 
 if __name__ == '__main__':
