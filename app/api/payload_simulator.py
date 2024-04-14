@@ -32,17 +32,20 @@ class PayloadSimulator:
         self.date_seq = date_seq
         self.id_gen = sequence_gen(1000)
 
-        # Generate list of tranmissions to "miss"
+        # Generate random sequence of tranmissions to "miss"
         self.transmissions_missed = DataGenerator(
             "gaussian", aslist=True, count=count, decimals=0, gauss_config=GaussConfig(mean=100, std=20)).values
         self.transmissions_missed = create_sequence(
             self.transmissions_missed, 100)
 
+    # Call the PayloadSimulator instance to generate the next payload
     def __call__(self):
         if not self.data:
             return
 
         self.counter += 1
+
+        # Pop next data and date value
         temp = self.data.pop()
         date_val = self.date_seq.pop()
 
@@ -53,6 +56,7 @@ class PayloadSimulator:
         )
 
         payload = self.simulate_errors(payload_obj)
+
         if payload:
             return payload.to_json()
         return payload
