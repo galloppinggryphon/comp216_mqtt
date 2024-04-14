@@ -47,6 +47,9 @@
 - [x] Broker
 
 ### Publisher
+- [ ] Publisher GUI
+  - [ ] Change settings
+- [ ] Configure and run multiple publishers
 - [x] Random data with pattern
 - [x] Data generator
 - [x] Packaging data
@@ -61,7 +64,7 @@
   - [x] Value added (point out in video, e.g. configuration object, diagrams)
 
 ### Subscriber
-- [-] Configure and run multiple subscribers
+- [ ] Configure and run multiple subscribers
 - [x] Receiving data
   - [x] Receive from broker
   - [x] Decode data
