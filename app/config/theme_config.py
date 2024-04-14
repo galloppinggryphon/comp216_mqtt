@@ -44,8 +44,16 @@ class ThemeConfig:
     secondary_bg_colour = "#b2dfdb"
     background_colour = "#e0f7fa"
     default_font = ("Arial", 12)
-    header_font = ("Arial", 20, "bold")
+    h1_font = ("Arial", 20, "bold")
+    h2_font = ("Arial", 16, "bold")
+    h3_font = ("Arial", 14, "bold")
     canvas = {"background": "#e0f7fa"}
+
+    @staticmethod
+    def font_size(adjust: int):
+        font, size = ThemeConfig.default_font
+        return (font, size + adjust)
+
 
 
 # TTK Style() configuration
@@ -56,8 +64,7 @@ def window_styles(style: Optional[Style] = None):
 
     TC = ThemeConfig
 
-    default_font = TC.default_font
-    header_font = TC.header_font
+    default_font, h1_font, h2_font, h3_font = TC.default_font, TC.h1_font, TC.h2_font, TC.h3_font
     main = TC.main_bg_colour
 
     with StyleBuilder(style) as S:
@@ -117,25 +124,47 @@ def window_styles(style: Optional[Style] = None):
                 },
             )
 
-        with S.widget(W.Button, "Primary") as S:
+        with S.widget(W.Button, "Primary.Md") as S:
             S.extend(W.Button)
+            S.style(font=TC.font_size(5))
 
-        with S.widget(W.Label, "Header") as S:
+        with S.widget(W.Button, "Success") as S:
+            S.extend(W.Button)
             S.style(
-                background=TC.secondary_bg_colour,
-                font=header_font
+                background=TC.success,
             )
 
-        with S.widget(W.Label, "Header") as S:
+        with S.widget(W.Button, "Warning") as S:
+            S.extend(W.Button)
             S.style(
-                background=TC.secondary_bg_colour,
-                font=header_font
+                background=TC.warning,
             )
 
         with S.widget(W.Label) as S:
             S.style(font=default_font)
 
-        with S.widget(W.Frame, "Header") as S:
+        with S.widget(W.Label, "Md") as S:
+            S.style(font=TC.font_size(5))
+
+        with S.widget(W.Label, "H1") as S:
+            S.style(
+                background=TC.secondary_bg_colour,
+                font=h1_font
+            )
+
+        with S.widget(W.Label, "H2") as S:
+            S.style(
+                background=main,
+                font=h2_font
+            )
+
+        with S.widget(W.Label, "H3") as S:
+            S.style(
+                background=main,
+                font=h3_font
+            )
+
+        with S.widget(W.Frame, "HeaderPanel") as S:
             S.style(background=TC.secondary_bg_colour)
 
 

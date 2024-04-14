@@ -6,7 +6,7 @@ main_window_config = WindowConfig(
     window_title="COMP216 MQTT Project",
     header_title="MQTT Control Panel",
     width=700,
-    height=400,
+    height=500,
     background=ThemeConfig.background_colour
 )
 
@@ -20,7 +20,7 @@ client_window_1 = WindowConfig(
 
 device_window_1 = WindowConfig(
     window_title="Device 1 - COMP216 MQTT Project",
-    header_title=f"{device_config[0].name} (#1)",
+    header_title=f"Configure {device_config[0].name} (#1)",
     width=800,
     height=600,
     background=ThemeConfig.background_colour

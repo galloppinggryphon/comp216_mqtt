@@ -40,7 +40,6 @@ IoTDevice1 = IoTDeviceConfig(
     type="temperature",
     topic="/temp/outdoor",
     frequency=0.5, #Delay between updates, in seconds
-    failure_frequency=0, #Every nth transmission
     data_config={
         "count": count,
         "value_range":(-5, 20),
@@ -52,6 +51,12 @@ IoTDevice1 = IoTDeviceConfig(
         date_seq=date_range
     )
 )
+
+##### CLIENT SETTINGS #####
+client1 = {
+    "id": 1,
+
+}
 
 # print('\nHello\n')
 

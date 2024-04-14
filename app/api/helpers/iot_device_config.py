@@ -23,6 +23,5 @@ class IoTDeviceConfig:
     type: str
     topic: str
     frequency: int
-    failure_frequency: int
     data_config: dict[str, Any]
     payload_generator: Callable[..., PayloadBase]
