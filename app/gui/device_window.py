@@ -81,15 +81,21 @@ class DeviceWindow1(TKWindow):
             R.col2 = Label(R(), text=self.device_config.topic)
 
         with form.addRow() as R:
-            t = tk.StringVar()
             R.col1 = Label(R(), text="Title")
-            R.col2 = Entry(R(), textvariable=self.device_config.title)
+            R.col2 = Entry(R())
 
         with form.addRow() as R:
-            t = tk.StringVar()
             R.col1 = Label(R(), text="Frequency")
-            R.col2 = Entry(R(), textvariable=t)
+            R.col2 = Entry(R())
 
+        with form.addRow() as R:
+            R.col1 = Label(R(), text="Value range (min-max)")
+            R.col2 = Frame(R())
+            vmax = Entry(R.col2)
+            vmax.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
+            Label(R.col2, text=" - ").pack(side=tk.LEFT)
+            vmin = Entry(R.col2)
+            vmin.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, )
 
 
 
@@ -98,11 +104,16 @@ class DeviceWindow1(TKWindow):
 
         box = Frame(frame, style="LightNeutral.TFrame", padding=20)
         box.grid(row=0, column=1, padx=(10, 0), sticky=tk.NSEW)
+
         Label(box, text="Output Preview", style="H3.TLabel", justify="left").pack(
             pady=(spacing_y, spacing_y), anchor=tk.NW)
 
         temp_prev_msg = Label(box, textvariable=self.temp_prev_msg, justify="left", wraplength=300)
         temp_prev_msg.pack(pady=(spacing_y, spacing_y), ipadx=5, ipady=5, expand=True, fill=tk.BOTH)
+
+        preview_btn = Button(box, text="Generate output", command=self.window.destroy)
+        preview_btn.pack(
+            padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
 
 
     sub1_counter = 0
