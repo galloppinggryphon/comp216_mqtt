@@ -10,7 +10,7 @@ connection_settings = {
 }
 
 ##### SHARED DEVICE CONFIG #####
-count = 100
+count = 1000
 start_date_time = "2024-04-01 00:00"
 
 date_range = DataGenerator("dates", count=count, aslist=True, date_time_config=DateTimeConfig(
@@ -21,9 +21,9 @@ date_range = DataGenerator("dates", count=count, aslist=True, date_time_config=D
 )).values
 
 
-##### DEVICE DATA #####
-
+##### DEVICE 1 #####
 #Outdoor
+
 device1_data = DataGenerator(
     type="brownian",
     count=count,
@@ -32,7 +32,6 @@ device1_data = DataGenerator(
     decimals=1
 ).values
 
-##### DEVICE SETTINGS #####
 IoTDevice1 = IoTDeviceConfig(
     id=1,
     name="outdoor_sensor",
@@ -52,26 +51,15 @@ IoTDevice1 = IoTDeviceConfig(
     )
 )
 
+##### DEVICE 2 #####
+device1_data = ...
+IoTDevice2 = ...
+
 ##### CLIENT SETTINGS #####
 client1 = {
     "id": 1,
 
 }
-
-# print('\nHello\n')
-
-# print(IoTDevice1)
-
-# IoTDevice2 = IoTDeviceConfig(
-#     id=1,
-#     name="livingroom_sensor",
-#     title="Living Room",
-#     type="temperature",
-#     topic="/temp/living_room",
-#     frequency=1, #Delay between updates, in seconds
-#     failure_frequency=0, #Every nth transmission
-#     payload_generator=device_data_1.generate_payload_data
-# )
 
 
 device_config = [IoTDevice1]

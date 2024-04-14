@@ -22,6 +22,6 @@ device_window_1 = WindowConfig(
     window_title="Device 1 - COMP216 MQTT Project",
     header_title=f"Configure {device_config[0].name} (#1)",
     width=800,
-    height=600,
+    height=550,
     background=ThemeConfig.background_colour
 )
