@@ -14,24 +14,26 @@ class DeviceWindow1(TKWindow):
     frame: Frame
     device_config: IoTDeviceConfig
 
-    def __init__(self, device_config: IoTDeviceConfig):
+    def __init__(self, device_config: IoTDeviceConfig, save_config_handler):
         super().__init__(False, window_configs.device_window_1, theme_config.ThemeConfig, theme_config.window_styles)
         logging.info(f"Opened Device {device_config.id}")
 
         self.device_config = device_config
 
+        # ATEFEH:
+        # save save_config_handler to class
+        # save copy of relevant device_config data for the reset button
+        # Setup variables to hold Entry data, wire up initial data
+
         # self.temp_msg_count = tk.IntVar(value=0)
-        # self.temp_prev_msg = tk.StringVar(value="")
+        self.temp_prev_msg = tk.StringVar(value="")
 
-        # IoTSimulator.create_subscriber(1,[ '/temp/outdoor'], self.on_sub_message)
-        # IoTSimulator.start_subscriber(1)
-
-        self.main_section()
-        self.footer()
+        self.draw_main_section()
+        self.draw_footer()
 
         self.on_window_close(self.on_window_close_handler)
 
-    def main_section(self):
+    def draw_main_section(self):
         frame = Frame(self.main)
         self.main_frame = frame
         frame.grid_columnconfigure(0, uniform="1", weight=1)
@@ -42,23 +44,23 @@ class DeviceWindow1(TKWindow):
         self.config_box()
         self.preview_box()
 
-
-    def footer(self):
+    def draw_footer(self):
         bottom = self.bottom
         bottom.config(padding=20)
 
-        Button(bottom, text="Save Changes", style="Success.TButton", command=lambda: ...).pack(
+        Button(bottom, text="Save Changes", style="Success.TButton", command=self.on_save).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
 
         Button(bottom, text="Close", command=self.window.destroy).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
 
+        # ATEFEH: Reset data back to what it was when the window was opened
+        # You'll have to clone the relevant data data on window __init__ and save that
         Button(bottom, text="Reset", style="Warning.TButton", command=lambda: ...).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.RIGHT)
 
-
-
-
+    # ATEFEH: connect the Entry components below
+    # Could you also make the two value_range entry boxes equal width? They resisted my efforts
     def config_box(self):
         frame = self.main_frame
         form = FormTable(frame, 8) # {"style": "LightNeutral.TFrame"}
@@ -97,8 +99,11 @@ class DeviceWindow1(TKWindow):
             vmin = Entry(R.col2)
             vmin.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, )
 
-
-
+    # ATEFEH:
+    # This bit is optional - generate message output from the publisher
+    # Easiest way to receive data is simply call self.device_config.payload_generator()
+    # This is a destructive action - it removes the first value from the list of values
+    # so afterwards it's a good idea to call the save handler again (reset the data)
     def preview_box(self):
         frame = self.main_frame
 
@@ -115,12 +120,11 @@ class DeviceWindow1(TKWindow):
         preview_btn.pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
 
-
-    sub1_counter = 0
-    sub1_update_counter = 0
-    prev_time = 'time'
-
-    def on_sub_message(self, topic, data):
+    # ATEFEH:
+    # Input validation
+    # Save data to save_config_handler(new_config)
+    # new_config format: {"title": str, "frequency": int, "value_range": (min, max)}
+    def on_save(self):
         ...
 
     def on_window_close_handler(self):
