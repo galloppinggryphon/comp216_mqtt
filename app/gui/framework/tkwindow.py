@@ -82,10 +82,10 @@ class TKWindow:
         self._draw_action_pane()
 
     def _draw_header(self):
-        top_pane = Frame(self.window, padding=10, style="Header.TFrame")
+        top_pane = Frame(self.window, padding=10, style="HeaderPanel.TFrame")
         top_pane.grid(row=0, column=0, sticky=NSEW)
         Label(
-            top_pane, text=self.window_config.header_title, style="Header.TLabel"  # type: ignore
+            top_pane, text=self.window_config.header_title, style="H1.TLabel"  # type: ignore
         ).pack(expand=True)
         self.__top = top_pane
 
@@ -134,3 +134,13 @@ class TKWindow:
 
     def is_window_open(self):
         return self.window.winfo_exists()
+
+    def modal(self):
+        self.window.wait_visibility()
+        self.window.grab_set()
+        return self
+        # self.window.transient(parent)
+
+    def resizable(self, horizontal = True, vertical = True):
+        self.window.resizable(horizontal,vertical)
+        return self
