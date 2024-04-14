@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import json
 import logging
-import threading
 from time import sleep
 from typing import Any, Callable, Iterable, NamedTuple, Optional, TypeVar, cast
 from app.api.helpers.bool_signal import BoolSignal
@@ -11,6 +10,9 @@ from app.api.mqtt_publisher import MQTTPublisher
 from app.api.mqtt_subscriber import MQTTSubscriber
 from app.api.helpers.threadsafe_singleton_meta import ThreadsafeSingletonMeta
 from app.helpers.utils import list_find
+from app.config import device_config, mqtt_config
+
+
 
 @dataclass
 class PublisherListItem:
@@ -28,8 +30,6 @@ class SubscriberListItem:
     client: MQTTSubscriber
     stop: BoolSignal
     topics: set[str]
-    # message_handler: Callable
-    # worker: ThreadWorker
 
 
 class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
@@ -125,6 +125,8 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         if pub_item:
             return pub_item.client
 
+        config.configure_payload()
+
         pub = MQTTPublisher(self.mqtt_config, config.name)
         list_item = PublisherListItem(
             name=config.name,
@@ -185,6 +187,19 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         pub.stop()
         pub.on_complete_or_interrupted()
 
+    # ATEFEH:
+    # Callback to send to the device window
+    # Make changes to the desired device_config[] IoTDeviceConfig global object
+    # new_config = {"title": str, "frequency": int, "value_range": (min, max)}
+    def update_publisher_config(self, device_id: int, new_config):
+        device = device_config[device_id]
+
+        ...
+
+        # Regenerate device data
+        device.configure_payload()
+
+    # Run this method threaded
     def __publisher_loop(self, pub: PublisherListItem):
         frequency, payload_generator, topic = pub.config.frequency, pub.config.payload_generator, pub.config.topic
 
