@@ -22,7 +22,11 @@ class TKWindow:
     __main: Frame
     __top: Frame
     __bottom: Frame
+    __header: Label
 
+    @property
+    def header(self):
+        return self.__header
     @property
     def top(self):
         return self.__top
@@ -34,10 +38,6 @@ class TKWindow:
     @property
     def bottom(self):
         return self.__bottom
-
-    @property
-    def main_(self):
-        return self.__main
 
     def __init__(self, root: bool, config: WindowConfig, theme: type[ThemeConfig], window_styles: Optional[Callable] = None):
         super().__init__()
@@ -84,9 +84,10 @@ class TKWindow:
     def _draw_header(self):
         top_pane = Frame(self.window, padding=10, style="HeaderPanel.TFrame")
         top_pane.grid(row=0, column=0, sticky=NSEW)
-        Label(
+        self.__header = Label(
             top_pane, text=self.window_config.header_title, style="H1.TLabel"  # type: ignore
-        ).pack(expand=True)
+        )
+        self.__header.pack(expand=True)
         self.__top = top_pane
 
     def _draw_main(self):
