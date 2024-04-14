@@ -12,13 +12,6 @@ from app.api.mqtt_subscriber import MQTTSubscriber
 from app.api.helpers.threadsafe_singleton_meta import ThreadsafeSingletonMeta
 from app.helpers.utils import list_find
 
-
-SubscriberListItem = NamedTuple('SubscriberListItem', [(
-    'name', str), ('config', IoTDeviceConfig), ("client", MQTTSubscriber)])
-PublisherListItem_ = NamedTuple('PublisherListItem', [(
-    'name', str), ('config', IoTDeviceConfig), ("client", MQTTPublisher), ("stop", Optional[BoolSignal])])
-
-
 @dataclass
 class PublisherListItem:
     name: str
@@ -217,7 +210,10 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
             sleep_counter = 0
             data = payload_generator()
-            pub.client.publish(topic, data.to_json())
+
+            # If data is empty, skip
+            if data:
+                pub.client.publish(topic, data)
 
         logging.info(f"Publisher '{pub.client.client_id}' stopped")
         pub.client.disconnect()
