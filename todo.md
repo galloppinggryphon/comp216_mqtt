@@ -2,7 +2,7 @@
 
 ## Devices configs (mqtt_config.py)
 
-- Configure three devices
+`- `Configure three devices
   - Locations: maybe outdoor (done) + living_room, bed_room?
   - Clone existing, add to `device_config` list
   - Data must be _"random with a pattern"_ - use the brownian generator (random with direction)
@@ -47,24 +47,26 @@
 - [x] Broker
 
 ### Publisher
+
 - [ ] Publisher GUI
   - [ ] Change settings
-- [ ] Configure and run multiple publishers
+- [x] Configure and run multiple publishers
 - [x] Random data with pattern
 - [x] Data generator
 - [x] Packaging data
-    - [x] As JSON
-    - [x] With timestamp
+  - [x] As JSON
+  - [x] With timestamp
 - [x] Submit data to broker
-    - [x] With topic
-    - [x] Missed transmissions
+  - [x] With topic
+  - [x] Missed transmissions
 - [ ] Extras
   - [ ] Skip blocks
   - [ ] Transmit wild data
   - [x] Value added (point out in video, e.g. configuration object, diagrams)
 
 ### Subscriber
-- [ ] Configure and run multiple subscribers
+
+- [x] Configure and run multiple subscribers
 - [x] Receiving data
   - [x] Receive from broker
   - [x] Decode data
@@ -75,5 +77,6 @@
   - [ ] Handle missing data
 
 ### Other
+
 - [ ] Code quality
 - [ ] Video demo
