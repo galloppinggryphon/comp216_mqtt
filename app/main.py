@@ -30,9 +30,9 @@ class Main:
         logging.info('Starting simulator')
         IoTSimulator(mqtt_config)
 
-        for device in device_config:
-            logging.info(f'Adding device: {device.name}')
-            IoTSimulator.create_publisher(device)
+        # for device in device_config:
+        #     logging.info(f'Adding device: {device.name}')
+        #     IoTSimulator.create_publisher(device)
 
 
 if __name__ == '__main__':

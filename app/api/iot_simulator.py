@@ -151,14 +151,20 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
     def start_publisher(self, pub_name: str, on_complete_or_interrupted: Optional[Callable] = None):
         pub = self.get_publisher(pub_name)
 
+        if not pub:
+            # Try to create publisher
+            pub_config = list_find(device_config, False,
+                        lambda pub: pub.name == pub_name)
+            IoTSimulator.create_publisher(pub_config)
+
+            pub = self.get_publisher(pub_name)
+
+            # logging.error(f"Cannot start publisher: '{
+            #               pub_name}' does not exist.")
+            # pub.on_complete_or_interrupted()
+
         if on_complete_or_interrupted:
             pub.on_complete_or_interrupted = on_complete_or_interrupted
-
-        if not pub:
-            logging.error(f"Cannot start publisher: '{
-                          pub_name}' does not exist.")
-            pub.on_complete_or_interrupted()
-            return
 
         def _start_publisher():
             res = pub.client.connect()
