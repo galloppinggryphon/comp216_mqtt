@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import logging
 import tkinter as tk
 from tkinter.ttk import Button, Entry, Frame, Label, Style
@@ -20,10 +19,11 @@ class DeviceWindow1(TKWindow):
         logging.info(f"Opened Device {device_config.id}")
 
         self.device_config = device_config
-        self.temp_msg_count = tk.IntVar(value=0)
-        self.temp_prev_msg = tk.StringVar(value="")
 
-        # IoTSimulator.create_subscriber(1,[ '/temp/outdoor'], self.on_sub1_message)
+        # self.temp_msg_count = tk.IntVar(value=0)
+        # self.temp_prev_msg = tk.StringVar(value="")
+
+        # IoTSimulator.create_subscriber(1,[ '/temp/outdoor'], self.on_sub_message)
         # IoTSimulator.start_subscriber(1)
 
         self.main_section()
@@ -120,27 +120,8 @@ class DeviceWindow1(TKWindow):
     sub1_update_counter = 0
     prev_time = 'time'
 
-    def on_sub1_message(self, topic, data):
-        # x transmissions / minute
-        # Chart: 10 minute interval on the x-axis
-        # data = {
-        #     "id": 1006,
-        #     "location": "outdoor",
-        #     "timestamp": "",
-        #     "temperature": 24.1
-        # }
-
-        timestamp = datetime.fromtimestamp( data["timecode"] )
-        datetime_str = timestamp.strftime( "%Y-%m-%d  %H:%M:%S")
-
-        i = self.temp_msg_count.get()
-        self.temp_msg_count.set(i + 1)
-        self.temp_prev_msg.set(f"{data}")
-
-    def on_sub2_message(self, topic, data):
-        i = self.temp_msg_count.get()
-        self.temp_msg_count.set(i + 1)
-        self.temp_prev_msg.set(f"{data}")
+    def on_sub_message(self, topic, data):
+        ...
 
     def on_window_close_handler(self):
         self.window.destroy()
