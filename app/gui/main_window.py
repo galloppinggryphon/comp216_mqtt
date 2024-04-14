@@ -193,10 +193,7 @@ class MainWindow(TKWindow):
     def open_device_window(self, device_id: int):
         device = device_config[device_id - 1]
         IoTSimulator.stop_publisher(device.name)
-
-        # device_config =
-        match device_id:
-            case 1: self.open_window('DeviceWindow1', DeviceWindow1, True, device)
+        self.open_window('DeviceWindow1', DeviceWindow1, True, device, IoTSimulator.publisher_save_config)
 
     def open_window(self, name: str, Window: TKWindow, modal = False, *args):
         if self.window_exists(name):
