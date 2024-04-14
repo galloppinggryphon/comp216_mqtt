@@ -11,7 +11,7 @@
 
 - Move publisher initialization from `main.py` to `IoTSimulator.py`
   - Devices should probably be registered the first time they are started (in `start_publisher()`)
-    Publisher error conditions (extras) - probably handle in `payload_simulator.py`
+- Publisher error conditions (extras) - probably handle in `payload_simulator.py`
   - Skip blocks
   - Transmit "wild data"
 - `save_device_config` handler: callback to send to the device config window, triggered when saved
