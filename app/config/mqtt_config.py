@@ -22,7 +22,7 @@ date_range = DataGenerator("dates", count=count, aslist=True, date_time_config=D
 
 
 ##### DEVICE 1 #####
-#Outdoor
+# Outdoor
 
 device1_data = DataGenerator(
     type="brownian",
@@ -38,17 +38,20 @@ IoTDevice1 = IoTDeviceConfig(
     title="Outdoor",
     type="temperature",
     topic="/temp/outdoor",
-    frequency=0.5, #Delay between updates, in seconds
+    # frequency=1/10, #Delay between updates, in seconds
+    frequency=0.5,  # DEBUGGING VALUE
     data_config={
         "count": count,
-        "value_range":(-5, 20),
-        "start_date_time": start_date_time,
+        "value_range": (-5, 20),
+        "date_range": date_range,
+        "data": device1_data
+        # "start_date_time": start_date_time,
     },
-    payload_generator=PayloadSimulator(
-        count=count,
-        data=device1_data,
-        date_seq=date_range
-    )
+    # payload_generator=PayloadSimulator(
+    #     count=count,
+    #     data=device1_data,
+    #     date_seq=date_range
+    # )
 )
 
 ##### DEVICE 2 #####

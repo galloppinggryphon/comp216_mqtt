@@ -13,7 +13,6 @@ from app.helpers.utils import list_find
 from app.config import device_config, mqtt_config
 
 
-
 @dataclass
 class PublisherListItem:
     name: str
@@ -58,7 +57,8 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         sub.set_callback(self._subscriber_message_handler(on_message))
         sub.set_options(log_message_received=True)
-        sub.subscribe(*topics) #topics: ['topic1', 'topic2'] => subscribe(topics[0], topics[1])
+        # topics: ['topic1', 'topic2'] => subscribe(topics[0], topics[1])
+        sub.subscribe(*topics)
 
         list_item = SubscriberListItem(
             id=sub_id,
@@ -66,7 +66,6 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
             client=sub,
             stop=BoolSignal(True),
             topics=set(topics),
-            # worker=...
         )
 
         self.subscribers.append(list_item)
