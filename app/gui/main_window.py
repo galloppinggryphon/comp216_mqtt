@@ -12,7 +12,8 @@ from app.api.iot_simulator import IoTSimulator
 from app.config import theme_config, window_configs
 from app.config import device_config
 from app.gui.clients.client_window_1 import ClientWindow1
-from app.gui.devices.device_window_1 import DeviceWindow1
+from app.gui.device_window import DeviceWindow1
+from app.gui.framework.components.form_table import FormTable
 from app.gui.framework.tkwindow import TKWindow
 from app.gui.framework.toggle_button import ToggleButton
 
@@ -24,61 +25,120 @@ class MainWindow(TKWindow):
     controls: dict[str, tk.Widget | ToggleButton]
     windows: weakref.WeakValueDictionary[str, TKWindow]
     client_win: TKWindow
+    frame: Frame
 
     def __init__(self):
         super().__init__(True, window_configs.main_window_config,
                          theme_config.ThemeConfig, theme_config.window_styles)
 
+        self.resizable(False, False)
+
         self.windows = weakref.WeakValueDictionary()
         self.controls = {}
-        self.main_section()
 
-    def main_section(self):
-        wrapper = Frame(self.main)
-        wrapper.grid_columnconfigure(0, uniform=1)
-        wrapper.grid_columnconfigure(1, uniform=1)
-        wrapper.grid_rowconfigure(0)
-        wrapper.pack(expand=True, fill=tk.BOTH)
+        self.draw_main_section()
+        self.draw_footer()
 
-        device_list_container = Frame(wrapper)
-        device_list_container.grid(row=0, column=0)
-        # device_list_box.pack(pady=(0, 25))
+    def draw_main_section(self):
+        frame = Frame(self.main)
+        frame.grid_columnconfigure(0, uniform=1)
+        frame.grid_columnconfigure(1, uniform=1)
+        frame.grid_rowconfigure(0)
+        frame.pack(expand=True, fill=tk.BOTH)
+        self.frame = frame
 
-        client_list_container = Frame(wrapper)
-        client_list_container.grid(row=0, column=1)
+        self.draw_device_table()
+        self.draw_client_table()
 
-        self.controls["device_list_container"] = device_list_container
-        self.controls["client_list_container"] = client_list_container
+    def draw_footer(self):
+        bottom = self.bottom
+        bottom.config(padding=20)
 
-        self.draw_client_list()
-        self.draw_device_list()
+        Button(bottom, text="Quit", style="Warning.TButton", command=self.window.destroy).pack(
+            padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.RIGHT)
 
-    def draw_client_list(self):
-        parent = self.controls["client_list_container"]
-        Label(parent, text="Clients", justify="left").pack(
+        Button(bottom, text="About", style="Success.TButton", command=lambda: ...).pack(
+            padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.RIGHT)
+
+
+    def draw_client_table(self):
+        container = Frame(self.frame)
+        container.grid(row=0, column=1, sticky=tk.NSEW)
+        client_table = FormTable(container, rows=2)
+        self.controls["client_table"] = client_table
+
+        Label(container, text="Clients", justify="left", style="H2.TLabel").pack(
             padx=(spacing_x, spacing_x), pady=(0, 5))
+
+        client_table.table.pack()
 
         self.add_client(1)
         self.add_client(2)
 
-    def draw_device_list(self):
-        parent = self.controls["device_list_container"]
+    def draw_device_table(self):
+        container = Frame(self.frame)
+        container.grid(row=0, column=0, sticky=tk.NSEW)
+        device_table = FormTable(container, rows=len(device_config))
+        self.controls["device_table"] = device_table
 
         # Devices
-        Label(parent, text="IoT devices", justify="left").pack(
+        Label(container, text="IoT devices", justify="left", style="H2.TLabel").pack(
             padx=(spacing_x, spacing_x), pady=(0, 5))
+
+        #Render here
+        device_table.table.pack()
 
         for device in device_config:
             self.add_device(device)
 
     def add_device(self, device_config: IoTDeviceConfig):
+        device_table = self.controls["device_table"]
 
-        parent = self.controls["device_list_container"]
 
-        row = Frame(parent)
-        row.pack(pady=(spacing_y, spacing_y), side=tk.TOP)
-        Label(row, text=device_config.title, justify="left").pack(
-            padx=(spacing_x, spacing_x), side=tk.LEFT)
+        with device_table.addRow() as R:
+            R.col1 = Label(R(), text=device_config.title, justify="left")
+            R.col2  = Frame(R())
+
+            # TOGGLE BUTTON -->
+            start_toggle = ToggleButton(R.col2, text="►", width=0)
+            start_toggle.pack(padx=(spacing_x, spacing_x), side=tk.LEFT)
+
+            # Register callback
+            def toggle_on_handler(current_state, new_state, event, is_virtual):
+                logging.debug(f'toggle_on_handler {
+                            (current_state, new_state, event, is_virtual)}')
+                if not current_state:
+                    self.start_device(device_config, start_toggle)
+                return True
+
+            def toggle_off_handler(current_state, new_state, event, is_virtual):
+                logging.debug(f'toggle_off_handler {
+                            (current_state, new_state, event, is_virtual)}')
+                return False if is_virtual else True
+
+            start_toggle.on_toggle(
+                toggle_on_callback=toggle_on_handler, toggle_off_callback=toggle_off_handler)
+            self.controls[f"start_device_{device_config.id}"] = start_toggle
+            # <-- TOGGLE BUTTON
+
+            Button(R.col2, text="⬛", command=lambda: self.stop_device(device_config), width=0).pack(
+                padx=(spacing_x, spacing_x), side=tk.LEFT)
+
+            open_win = Button(R.col2, text="🔧", style="Primary.Md.TButton", command=lambda: self.open_device_window(1), width=0, padding=(8,1))
+            open_win.pack(
+                padx=(spacing_x, spacing_x), side=tk.LEFT) # ⚙ 🔧 ⚒  ✎
+            open_win.config()
+
+
+            # .pack(
+            # padx=(spacing_x, spacing_x), side=tk.LEFT)
+
+        return
+        # row = Frame(device_table)
+        # row.pack(pady=(spacing_y, spacing_y), side=tk.TOP)
+
+        # Label(row, text=device_config.title, justify="left").pack(
+        #     padx=(spacing_x, spacing_x), side=tk.LEFT)
 
         # TOGGLE BUTTON -->
         start_toggle = ToggleButton(row, text="►", width=0)
@@ -104,19 +164,24 @@ class MainWindow(TKWindow):
 
         Button(row, text="⬛", command=lambda: self.stop_device(device_config), width=0).pack(
             padx=(spacing_x, spacing_x), side=tk.LEFT)
-        Button(row, text="🔧", command=lambda: ..., width=0).pack(
+        Button(row, text="🔧", command=lambda: self.open_device_window(1), width=0).pack(
             padx=(spacing_x, spacing_x), side=tk.LEFT)
 
     def add_client(self, client_id: int):
-        parent = self.controls["client_list_container"]
+        client_table = self.controls["client_table"]
 
-        row = Frame(parent)
-        row.pack(pady=(spacing_y, spacing_y), side=tk.TOP)
-        Label(row, text=f"Client {client_id}", justify="left").pack(
-            padx=(spacing_x, spacing_x), pady=(0, 5), side=tk.LEFT)
+        with client_table.addRow() as R:
 
-        Button(row, text="Open", command=lambda: self.open_client_window(client_id)).pack(
-            padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
+
+        # row = Frame(parent)
+        # row.pack(pady=(spacing_y, spacing_y), side=tk.TOP)
+            R.col1 = Label(R(), text=f"Client {client_id}", justify="left")
+            # .pack(
+            #     padx=(spacing_x, spacing_x), pady=(0, 5), side=tk.LEFT)
+
+            R.col2 = Button(R(), text="Open", command=lambda: self.open_client_window(client_id))
+            # .pack(
+            # padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
 
     def open_client_window(self, client_id: int):
         match client_id:
@@ -131,13 +196,16 @@ class MainWindow(TKWindow):
 
         # device_config =
         match device_id:
-            case 1: self.open_window('DeviceWindow1', DeviceWindow1)
+            case 1: self.open_window('DeviceWindow1', DeviceWindow1, True, device)
 
-    def open_window(self, name: str, Window: TKWindow):
+    def open_window(self, name: str, Window: TKWindow, modal = False, *args):
         if self.window_exists(name):
             return
 
-        self.windows[name] = Window()
+        self.windows[name] = Window(*args)
+
+        if modal:
+            self.windows[name].modal()
 
     def window_exists(self, name: str):
         exists = name in self.windows
