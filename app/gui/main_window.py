@@ -4,7 +4,6 @@ import tkinter as tk
 
 ### IMPORT ALL COMPONENTS FROM TTK IF POSSIBLE! ###
 from tkinter.ttk import Frame, Button, Label
-from typing import Callable
 import weakref
 
 from app.api.helpers.iot_device_config import IoTDeviceConfig
@@ -62,7 +61,6 @@ class MainWindow(TKWindow):
         Button(bottom, text="About", style="Success.TButton", command=lambda: ...).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.RIGHT)
 
-
     def draw_client_table(self):
         container = Frame(self.frame)
         container.grid(row=0, column=1, sticky=tk.NSEW)
@@ -88,7 +86,7 @@ class MainWindow(TKWindow):
         Label(container, text="Temperature Sensors", justify="left", style="H2.TLabel").pack(
             padx=(spacing_x, spacing_x), pady=(0, 5))
 
-        #Render here
+        # Render here
         device_table.table.pack()
 
         for device in device_config:
@@ -99,7 +97,7 @@ class MainWindow(TKWindow):
         device_table = self.controls["device_table"]
         with device_table.addRow() as R:
             R.col1 = Label(R(), text=device_config.title, justify="left")
-            R.col2  = Frame(R())
+            R.col2 = Frame(R())
 
             # TOGGLE BUTTON -->
             start_toggle = ToggleButton(R.col2, text="►", width=0)
@@ -108,14 +106,14 @@ class MainWindow(TKWindow):
             # Register callback
             def toggle_on_handler(current_state, new_state, event, is_virtual):
                 logging.debug(f'toggle_on_handler {
-                            (current_state, new_state, event, is_virtual)}')
+                    (current_state, new_state, event, is_virtual)}')
                 if not current_state:
                     self.start_device(device_config, start_toggle)
                 return True
 
             def toggle_off_handler(current_state, new_state, event, is_virtual):
                 logging.debug(f'toggle_off_handler {
-                            (current_state, new_state, event, is_virtual)}')
+                    (current_state, new_state, event, is_virtual)}')
                 return False if is_virtual else True
 
             start_toggle.on_toggle(
@@ -126,27 +124,19 @@ class MainWindow(TKWindow):
             Button(R.col2, text="⬛", command=lambda: self.stop_device(device_config), width=0).pack(
                 padx=(spacing_x, spacing_x), side=tk.LEFT)
 
-            open_win = Button(R.col2, text="🔧", style="Primary.Md.TButton", command=lambda: self.open_device_window(device_config.id), width=0, padding=(8,1))
+            open_win = Button(R.col2, text="🔧", style="Primary.Md.TButton", command=lambda: self.open_device_window(
+                device_config.id), width=0, padding=(8, 1))
             open_win.pack(
-                padx=(spacing_x, spacing_x), side=tk.LEFT) # ⚙ 🔧 ⚒  ✎
+                padx=(spacing_x, spacing_x), side=tk.LEFT)  # ⚙ 🔧 ⚒  ✎
             open_win.config()
-
 
     def add_client(self, client_id: int):
         client_table = self.controls["client_table"]
 
         with client_table.addRow() as R:
-
-
-        # row = Frame(parent)
-        # row.pack(pady=(spacing_y, spacing_y), side=tk.TOP)
             R.col1 = Label(R(), text=f"Client {client_id}", justify="left")
-            # .pack(
-            #     padx=(spacing_x, spacing_x), pady=(0, 5), side=tk.LEFT)
-
-            R.col2 = Button(R(), text="Open", command=lambda: self.open_client_window(client_id))
-            # .pack(
-            # padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
+            R.col2 = Button(R(), text="Open",
+                            command=lambda: self.open_client_window(client_id))
 
     def open_client_window(self, client_id: int):
         match client_id:
@@ -160,9 +150,10 @@ class MainWindow(TKWindow):
     def open_device_window(self, device_id: int):
         device = device_config[device_id - 1]
         IoTSimulator.stop_publisher(device.name)
-        self.open_window('DeviceWindow', DeviceWindow1, True, device, IoTSimulator.update_publisher_config)
+        self.open_window('DeviceWindow', DeviceWindow1, True,
+                         device, IoTSimulator.update_publisher_config)
 
-    def open_window(self, name: str, Window: TKWindow, modal = False, *args):
+    def open_window(self, name: str, Window: TKWindow, modal=False, *args):
         if self.window_exists(name):
             return
 
@@ -189,8 +180,4 @@ class MainWindow(TKWindow):
     def stop_device(self, device_config: IoTDeviceConfig):
         logging.info(f"Stopping device #{
                      device_config.id} ({device_config.name})")
-        toggle_button = self.controls[f"start_device_{device_config.id}"]
-
-        # Toggle off via virtual event
-        # toggle_button.trigger_toggle(False)  # type: ignore
         IoTSimulator.stop_publisher(device_config.name)
