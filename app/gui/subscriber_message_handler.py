@@ -49,6 +49,7 @@ class SubscriberMessageHandler:
                 self._message_queue.append(message)
                 return
 
+            self._message_queue = []
             self._elapsed_intervals +=1
             logging.info(f"Subscriber interval #{self._elapsed_intervals} (message: #{data['id']}, time: {data['time_formatted']})")
 
