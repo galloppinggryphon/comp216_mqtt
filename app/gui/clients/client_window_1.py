@@ -7,6 +7,7 @@ from app.api.iot_simulator import IoTSimulator
 from app.gui.framework.tkwindow import TKWindow
 from app.config import theme_config, window_configs, device_config
 from tkinter import Canvas, BOTH
+from app.gui.subscriber_message_handler import SubscriberMessageHandler
 
 spacing_y = 10
 spacing_x = 10
@@ -17,23 +18,30 @@ class ClientWindow1(TKWindow):
 
         logging.info("Opened Client 1")
 
-        self.temp_msg_count = tk.IntVar(value=0)
-        self.temp_prev_msg = tk.StringVar(value="")
-        self.canvas = Canvas()
-        self.data_arr=[]
+        # self.temp_msg_count = tk.IntVar(value=0)
+        self.canvas1 = Canvas()
+        self.items1 = []
+        self.data_arr1=[]
 
-        IoTSimulator.create_subscriber(1,[ '/temp/outdoor'], self.on_sub1_message)
-        IoTSimulator.start_subscriber(1)
-
-        IoTSimulator.create_subscriber(2,[ '/temp/living_room'], self.on_sub2_message)
-        IoTSimulator.start_subscriber(2)
-
-        IoTSimulator.create_subscriber(3,[ '/temp/greenhouse'], self.on_sub3_message)
-        IoTSimulator.start_subscriber(3)
+        self.canvas2 = Canvas()
+        self.items2 = []
+        self.data_arr2=[]
 
         self.main_section()
 
         self.on_window_close(self.on_window_close_handler)
+
+        self.sub1 = SubscriberMessageHandler(3)
+        self.sub1.add_callback(self.on_sub1_message)
+        IoTSimulator.create_subscriber(
+            1, ['/temp/outdoor'], self.sub1.on_message)
+        IoTSimulator.start_subscriber(1)
+
+        self.sub2 = SubscriberMessageHandler(3)
+        self.sub2.add_callback(self.on_sub2_message)
+        IoTSimulator.create_subscriber(
+            2, ['/temp/living_room'], self.sub2.on_message)
+        IoTSimulator.start_subscriber(2)
 
     def main_section(self):
         self.demo()
@@ -46,83 +54,128 @@ class ClientWindow1(TKWindow):
         frame.grid_rowconfigure(0)
         frame.pack(expand=True, fill=tk.BOTH)
 
-        box1 = Frame(frame, style="LightNeutral.TFrame", padding=20)
-        box1.grid(row=0, column=0, sticky=tk.NSEW, padx=(0, 10))
-        Label(box1, text="Messages received:", justify="left").pack(
-            pady=(spacing_y, spacing_y), side=tk.TOP, anchor=tk.NW)
-        Entry(box1, textvariable=self.temp_msg_count).pack(
-            pady=(spacing_y, spacing_y), side=tk.TOP, anchor=tk.NW)
-        Button(box1, text="Stop subscriber", command=lambda: IoTSimulator.stop_subscriber(1)).pack(
-            pady=(spacing_y, spacing_y), side=tk.TOP, anchor=tk.NW)
-
-        box2 = Frame(frame, style="LightNeutral.TFrame", padding=20)
-        # col.pack(pady=(25, spacing_y), expand=True, fill=tk.X)
-        box2.grid(row=0, column=1, padx=(10, 0), sticky=tk.NSEW)
-        # col.configure()
-        Label(box2, text="Last message received:", justify="left").pack(
-            pady=(spacing_y, spacing_y), anchor=tk.NW)
+        box_line1 = Frame(frame, style="LightNeutral.TFrame", padding=20)
+        box_line1.grid(row=0, column=0, columnspan = 2, pady=15, sticky=tk.NSEW)
         
-        box_line = Frame(frame, style="LightNeutral.TFrame", padding=20)
-        box_line.grid(row=1, column=0, columnspan = 2, pady=15, sticky=tk.NSEW)
-
+        label_line1 = Label(box_line1, text=f"Line Chart: {device_config[0].name}", justify="left")
+        label_line1.pack(pady=(spacing_y, spacing_y), anchor=tk.NW)
         
-        label_line = Label(box_line, text=f"Line Chart: {device_config[0].name}", justify="left")
-        label_line.pack(pady=(spacing_y, spacing_y), anchor=tk.NW)
+        self.canvas1 = Canvas(box_line1, width=200, height=240, bg='white')
+        self.canvas1.pack(fill="both", expand=True)
+
+        box_line2 = Frame(frame, style="LightNeutral.TFrame", padding=20)
+        box_line2.grid(row=1, column=0, columnspan = 2, pady=15, sticky=tk.NSEW)
         
-        self.canvas = Canvas(box_line, width=200, height=240, bg='white')
-        self.canvas.pack(fill="both", expand=True)
+        label_line2 = Label(box_line2, text=f"Line Chart: {device_config[1].name}", justify="left")
+        label_line2.pack(pady=(spacing_y, spacing_y), anchor=tk.NW)
+        
+        self.canvas2 = Canvas(box_line2, width=200, height=240, bg='white')
+        self.canvas2.pack(fill="both", expand=True)
 
-        temp_prev_msg = Label(box2, textvariable=self.temp_prev_msg, justify="left", wraplength=300)
-        temp_prev_msg.pack(pady=(spacing_y, spacing_y), ipadx=5, ipady=5, expand=True, fill=tk.BOTH)
+    def on_sub1_message(self, data,message_queue):
+        # i = self.temp_msg_count.get()
+        # self.temp_msg_count.set(i + 1)
+        self.create_line1(data)
 
-    def on_sub1_message(self, topic, data):
-        i = self.temp_msg_count.get()
-        self.temp_msg_count.set(i + 1)
-        self.temp_prev_msg.set(f"{data}")
-        self.create_line(data)
-
-    def on_sub2_message(self, topic, data):
-        i = self.temp_msg_count.get()
-        self.temp_msg_count.set(i + 1)
-        self.temp_prev_msg.set(f"{data}")
+    def on_sub2_message(self, data, message_queue):
+        # i = self.temp_msg_count.get()
+        # self.temp_msg_count.set(i + 1)
+        self.create_line2(data)
 
     def on_window_close_handler(self):
         self.window.destroy()
         IoTSimulator.stop_subscriber(1)
         logging.info("Closed Client 1")
     
-    def create_line(self,data):
-        data_info= device_config[0]
-        min = data_info.data_config['value_range'][0]
-        max = data_info.data_config['value_range'][1]
-
-        length = len(self.data_arr)
-        
-        if length>30:
-            self.data_arr.pop(0)
- 
-        self.data_arr.append(data["temperature"])
-        self.canvas.delete('all')
+    def create_line1(self,data):
+        y_value=180
+            
+        canvas=self.canvas1
+        arr=self.data_arr1
+        items=self.items1
 
         startX = 20
         startY = 220
         x_line_gap = 20
         y_scale = 8
 
-        self.canvas.create_line(20,20,20,220,width=2, fill='black')
-        self.canvas.create_line(20,180,700,180,width=2, fill='black')
+        data_info= device_config[0]
+        min = data_info.data_config['value_range'][0]
+        max = data_info.data_config['value_range'][1]
 
-        self.canvas.create_text(10,220,text=f'{min}')
-        self.canvas.create_text(10,20,text=f'{max}')
+        length = len(arr)
+        
+        if length>30:
+            arr.pop(0)
+ 
+        arr.append(data["temperature"])
+        canvas.delete('all')
+
+        #x-axis,y-axis
+        canvas.create_line(20,20,20,220,width=2, fill='black')
+        canvas.create_line(20,y_value,700,y_value,width=2, fill='black')
+
+        #minimum value & maximum value for y-axis
+        canvas.create_text(10,220,text=f'{min}')
+        canvas.create_text(10,20,text=f'{max}')
+
+        for i in range(31):
+            canvas.create_text(startX + i * x_line_gap,230,text=f"{i}")
 
         # Draw dynamic data lines
-        for i in range(len(self.data_arr)-1):
+        for i in range(length-1):
             #start point
             x_line_start = startX + i * x_line_gap
-            y_line_start = startY - (self.data_arr[i]-min)*y_scale
+            y_line_start = startY - (arr[i]-min)*y_scale
             #end point
             x_line_end = startX + (i+1) * x_line_gap
-            y_line_end = startY - (self.data_arr[i+1]-min)*y_scale
+            y_line_end = startY - (arr[i+1]-min)*y_scale
 
-            self.canvas.create_text(x_line_start,230,text=f"{i}")
-            self.canvas.create_line(x_line_start, y_line_start, x_line_end, y_line_end, width=2, fill='red')
+            items.append(canvas.create_line(x_line_start, y_line_start, x_line_end, y_line_end, width=2, fill='red'))
+
+
+    def create_line2(self,data):
+        y_value=220
+        canvas=self.canvas2
+        arr=self.data_arr2
+        items=self.items2   
+
+        startX = 20
+        startY = 220
+        x_line_gap = 20
+        y_scale = 8
+
+        data_info= device_config[1]
+        min = data_info.data_config['value_range'][0]
+        max = data_info.data_config['value_range'][1]
+
+        length = len(arr)
+        
+        if length>30:
+            arr.pop(0)
+ 
+        arr.append(data["temperature"])
+        canvas.delete('all')
+
+        #x-axis,y-axis
+        canvas.create_line(20,20,20,220,width=2, fill='black')
+        canvas.create_line(20,y_value,700,y_value,width=2, fill='black')
+
+        #minimum value & maximum value for y-axis
+        canvas.create_text(10,220,text=f'{min}')
+        canvas.create_text(10,20,text=f'{max}')
+
+        for i in range(31):
+            canvas.create_text(startX + i * x_line_gap,230,text=f"{i}")
+
+        # Draw dynamic data lines
+        for i in range(length-1):
+            #start point
+            x_line_start = startX + i * x_line_gap
+            y_line_start = startY - (arr[i]-min)*y_scale
+            #end point
+            x_line_end = startX + (i+1) * x_line_gap
+            y_line_end = startY - (arr[i+1]-min)*y_scale
+
+            items.append(canvas.create_line(x_line_start, y_line_start, x_line_end, y_line_end, width=2, fill='red'))
+  
