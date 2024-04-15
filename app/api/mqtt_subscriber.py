@@ -92,7 +92,8 @@ class MQTTSubscriber(MQTTClient):
         elif self.options.log_message_received_verbose:
             logging.debug(data["topic"], ":", data["payload"])
 
-        self.message_callback(data)
+        if self.message_callback:
+            self.message_callback(data)
 
     def _on_connect(self, client, userdata, flags, reason_code, properties):
         if reason_code.is_failure:
@@ -107,13 +108,13 @@ class MQTTSubscriber(MQTTClient):
                 topics = [(topic, 1) for topic in self.subscriptions]
                 client.subscribe(topics)
 
-    def _parse_message(self, message: mqtt.MQTTMessage):
+    @staticmethod
+    def _parse_message(message: mqtt.MQTTMessage):
         obj = {
             "topic": message.topic,
             "payload": message.payload.decode("utf-8"),
             "timestamp": message.timestamp,
             "qos": message.qos,
-            #TODO?? "state": message.state
         }
         return obj
 
