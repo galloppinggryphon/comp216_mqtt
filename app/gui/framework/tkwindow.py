@@ -19,6 +19,7 @@ class TKWindow:
     style: Style
     window_config: WindowConfig
     theme: Type[ThemeConfig]
+    window_close_callbacks: list[Callable]
     __main: Frame
     __top: Frame
     __bottom: Frame
@@ -43,6 +44,7 @@ class TKWindow:
         super().__init__()
         self.window_config = config
         self.theme = theme
+        self.window_close_callbacks = []
 
         # Create window and apply styles
         if root:
@@ -56,6 +58,7 @@ class TKWindow:
             self.window = Toplevel()
 
         self._window_setup()
+        self._on_window_close()
 
     def _window_setup(self):
         conf = self.window_config
@@ -113,10 +116,13 @@ class TKWindow:
         event_key = f"<{event}>"
         self.window.bind(event_key, callback, "%d") # type: ignore
 
-    def bind_virtual_event(self, event_name: str, callback: Callable):
+    def bind_virtual_event(self, event_name: str, callback: Callable, return_trigger = False):
         event_key = f"<<{event_name}>>"
         self.window.event_add(event_key, 'None')
         self.window.bind(event_key, callback,"%d") # type: ignore
+
+        if return_trigger:
+            return self.create_virtual_event_trigger(event_name)
 
     def trigger_virtual_event(self, event_name: str,  data: Optional[Any] = None):
         Event.event_data = data # type: ignore
@@ -130,8 +136,19 @@ class TKWindow:
     def mainloop(self):
         self.window.mainloop()
 
+    def close(self):
+        self._on_window_close()
+
     def on_window_close(self, callback: Callable):
-        self.window.protocol('WM_DELETE_WINDOW', callback)
+        self.window_close_callbacks.append(callback)
+
+    def _on_window_close(self):
+        def _on_close():
+            for callback in self.window_close_callbacks:
+                callback(self)
+            self.window.destroy()
+
+        self.window.protocol('WM_DELETE_WINDOW', _on_close)
 
     def is_window_open(self):
         return self.window.winfo_exists()
