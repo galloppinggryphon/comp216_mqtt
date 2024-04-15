@@ -146,7 +146,7 @@ class DeviceWindow1(TKWindow):
         # **********
         try:
             title = self.title_entry.get()
-            frequency = int(self.frequency_entry.get())
+            frequency = float(self.frequency_entry.get())
             min_val = float(self.vmin.get())
             max_val = float(self.vmax.get())
             if min_val >= max_val:
