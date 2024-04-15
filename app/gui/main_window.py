@@ -12,6 +12,7 @@ from app.api.iot_simulator import IoTSimulator
 from app.config import theme_config, window_configs
 from app.config import device_config
 from app.gui.clients.client_window_1 import ClientWindow1
+from app.gui.clients.client_window_2 import ClientWindow2
 from app.gui.device_window import DeviceWindow1
 from app.gui.framework.components.form_table import FormTable
 from app.gui.framework.tkwindow import TKWindow
@@ -150,7 +151,7 @@ class MainWindow(TKWindow):
             case 1:
                 self.open_window('ClientWindow1', ClientWindow1)
             case 2:
-                ...
+                self.open_window('ClientWindow2', ClientWindow2)
 
     def open_device_window(self, device_id: int):
         device = device_config[device_id - 1]
