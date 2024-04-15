@@ -32,6 +32,9 @@ class ClientWindow1(TKWindow):
         IoTSimulator.create_subscriber(2,[ '/temp/living_room'], self.on_sub2_message)
         IoTSimulator.start_subscriber(2)
 
+        IoTSimulator.create_subscriber(3,[ '/temp/greenhouse'], self.on_sub3_message)
+        IoTSimulator.start_subscriber(3)
+
         self.main_section()
 
         self.on_window_close(self.on_window_close_handler)

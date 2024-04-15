@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 import json
 import logging
 from time import sleep
@@ -86,16 +87,16 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
     def check_status(self):
         sub = self.get_subscriber(1)
-        print(sub.client)
+        print(sub.client) # type: ignore
         # print('is_alive', sub.worker.is_alive())
-        print(sub.client.connection_error)
+        print(sub.client.connection_error) # type: ignore
 
     def subscriber_wait(self):
-        sub = self.get_subscriber(1)
-        sub.worker.wait()
+        sub = self.get_subscriber(1) # type: ignore
+        sub.worker.wait() # type: ignore
 
     def stop_subscriber(self, sub_id: int):
-        sub = self.get_subscriber(sub_id)
+        sub = self.get_subscriber(sub_id) # type: ignore
 
         if not sub:
             logging.error(f"Cannot stop subscriber: #'{
@@ -113,7 +114,8 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
     def _subscriber_message_handler(self, on_message):
         def _message_handler(data):
             payload = json.loads(data['payload'])
-            on_message(data['topic'], payload)
+            timestamp = datetime.fromtimestamp(data['timestamp'])
+            on_message(timestamp, data['topic'], payload)
 
         return _message_handler
 
@@ -164,15 +166,15 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
             # pub.on_complete_or_interrupted()
 
         if on_complete_or_interrupted:
-            pub.on_complete_or_interrupted = on_complete_or_interrupted
+            pub.on_complete_or_interrupted = on_complete_or_interrupted # type: ignore
 
         def _start_publisher():
-            res = pub.client.connect()
+            res = pub.client.connect() # type: ignore
             if res:
-                pub.stop.reset()
-                self.__publisher_loop(pub)
+                pub.stop.reset() # type: ignore
+                self.__publisher_loop(pub) # type: ignore
             else:
-                pub.on_complete_or_interrupted()
+                pub.on_complete_or_interrupted() # type: ignore
 
         ThreadWorker(_start_publisher, background=True)
 
@@ -198,7 +200,9 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
     # new_config = {"title": str, "frequency": int, "value_range": (min, max)}
     def update_publisher_config(self, device_id: int, new_config):
         device = device_config[device_id]
-
+        device.title = new_config['title']
+        device.frequency = new_config['frequency']
+        device.data_config['value_range'] = new_config['value_range']
         ...
 
         # Regenerate device data

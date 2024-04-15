@@ -24,6 +24,13 @@ client_window_2 = WindowConfig(
     height=600,
     background=ThemeConfig.background_colour
 )
+client_window_3 = WindowConfig(
+    window_title="Client 3 - COMP216 MQTT Project",
+    header_title="Client 3",
+    width=800,
+    height=600,
+    background=ThemeConfig.background_colour
+)
 device_window_1 = WindowConfig(
     window_title="Device Config - COMP216 MQTT Project",
     header_title="Configure Device",

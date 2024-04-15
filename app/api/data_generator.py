@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, Literal, Optional, Tuple
 import numpy as np
@@ -10,7 +12,7 @@ from app.helpers.utils import (
 )
 
 GeneratorTypes = Literal[
-    "brownian", "constant", "dates", "exponential", "gaussian", "pattern", "sequence", "uniform"
+    "brownian", "combine", "constant", "dates", "exponential", "gaussian", "pattern", "sequence", "sine", "uniform"
 ]
 
 TimeUnits = Literal["second", "minute", "hour", "day", "week", "month", "year"]
@@ -42,11 +44,6 @@ class DateTimeConfig(IterableClass):
     time_format: str = "%Y-%m-%d"
     format: TimeFormats = "formatted"
 
-@dataclass
-class SineConfig(IterableClass):
-    mean: float | int = 1
-    std: float | int = 1
-
 
 class DataGenerator:
     # Return data as list (default is numpy array (ndarray))
@@ -69,6 +66,15 @@ class DataGenerator:
     gauss_config: GaussConfig = (
         GaussConfig()
     )  # Tuple[Optional[float|int], Optional[float|int]] = (None, None)
+
+    # Sine wave config
+    sine_frequency: int = 5
+
+    # Sequence start
+    sequence_start = 1
+
+    # Combine datagenerators
+    combine_generators: list[DataGenerator]
 
     # Configuration for time/date series. Note: Start date must use ISO format
     date_time_config: DateTimeConfig = DateTimeConfig()
@@ -103,10 +109,13 @@ class DataGenerator:
 
     @property
     def values(self):
-        values = []
+        values = np.array([])
         match self.type:
             case "brownian":
                 values = self.__generate_brownian()
+
+            case "combine":
+                values = self.__generate_combined()
 
             case "constant":
                 values = self.__generate_constant()
@@ -120,11 +129,14 @@ class DataGenerator:
             case "gaussian":
                 values = self.__generate_gaussian()
 
+            case "pattern":
+                values = self.__generate_pattern()
+
             case "sequence":
                 values = self.__generate_sequence()
 
-            case "pattern":
-                values = self.__generate_pattern()
+            case "sine":
+                values = self.__generate_sine()
 
             case "uniform":
                 values = self.__generate_uniform()
@@ -133,22 +145,26 @@ class DataGenerator:
             values = np.round(values, self.decimals)
 
         if self.aslist:
-            return values.tolist()
+            return values.tolist() # type: ignore
 
         return values
 
     def __init__(
         self,
         type: GeneratorTypes = "uniform",
-        aslist = False,
+        aslist=False,
         generate_int=False,
         count=None,
         value_range=None,
         decimals=-1,
         gauss_config: Optional[GaussConfig] = None,
         date_time_config: Optional[DateTimeConfig] = None,
-        sequence_start: Optional[int] = 0
+        sequence_start: Optional[int] = 0,
+        sine_frequency: Optional[int] = 0,
+        combine_generators: Optional[list[DataGenerator]] = []
     ):
+        if combine_generators:
+            self.combine_generators = combine_generators
         if value_range:
             self.value_range = value_range
         if count:
@@ -157,6 +173,8 @@ class DataGenerator:
             self.decimals = decimals
         if sequence_start:
             self.sequence_start = sequence_start
+        if sine_frequency:
+            self.sine_frequency = sine_frequency
         if type:
             self.type = type
         if aslist:
@@ -202,6 +220,17 @@ class DataGenerator:
             values = np.append(values, v)
 
         return self.__normalize_values(values, rescale=True)
+
+    def __generate_combined(self):
+        gen_list = self.combine_generators
+        if not gen_list:
+            return np.array([])
+
+        value_arrays = [x.values for x in gen_list]
+
+        combined_values = sum(value_arrays)
+        return self.__normalize_values(combined_values)
+
 
     def __generate_constant(self):
         self.__setup_generator()
@@ -251,18 +280,15 @@ class DataGenerator:
         return np.vectorize(generate)(values)
 
     def __generate_sequence(self):
-        return np.arange(self.sequence_start, self.count - 1)
+        return np.arange(self.sequence_start, self.count + self.sequence_start)
 
     def __generate_sine(self):
         self.__setup_generator()
-        arr = np.arange(0, self.count - 1)
-        values = np.array([0])
-
-        Fs = 8000
-        f = 5
-        sample = 8000
-        x = np.arange(sample)
-        y = np.sin(2 * np.pi * f * x / Fs)
+        ts = 1/self.count
+        t = np.arange(0, 1, ts)
+        freq = self.sine_frequency
+        values = np.sin(2*np.pi*freq*t)
+        return self.__normalize_values(values, True)
 
     def __generate_uniform(self):
         values = self.__generate_random()

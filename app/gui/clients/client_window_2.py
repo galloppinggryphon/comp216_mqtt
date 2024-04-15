@@ -28,6 +28,9 @@ class ClientWindow2(TKWindow):
         IoTSimulator.create_subscriber(2,[ '/temp/living_room'], self.on_sub2_message)
         IoTSimulator.start_subscriber(2)
 
+        IoTSimulator.create_subscriber(3,[ '/temp/greenhouse'], self.on_sub3_message)
+        IoTSimulator.start_subscriber(3)
+
         self.main_section()
 
         self.on_window_close(self.on_window_close_handler)
@@ -35,55 +38,76 @@ class ClientWindow2(TKWindow):
     def main_section(self):
         self.demo()
 
-    def demo(self):
+    def create_thermometer_bar(self, frame, title):
+        # Create a sub-frame to hold thermometer components
+        sub_frame = Frame(frame, style="LightNeutral.TFrame")
+        sub_frame.pack(fill=tk.BOTH, expand=True)
 
+        # Add title for the frame
+        Label(sub_frame, text=title, justify="left").pack(pady=(10, 5), anchor=tk.W)
+
+        # Create thermometer bar
+        canvas = Canvas(sub_frame, width=200, height=240, bg='white')
+        canvas.pack(fill="both", expand=True)
+
+        # Draw "Current Temperature" text on the canvas
+        canvas.create_text(100, 20, text="Current Temperature:", anchor=tk.N)
+
+        # Draw thermometer bar
+        canvas.create_rectangle(25, 40, 100, 240, fill="light blue")  # Thermometer bar
+        marker = canvas.create_line(100, 240, 100, 240, fill="red", width=2)  # Marker
+        
+    def demo(self):
+        # Create main frame
         frame = Frame(self.main)
-        frame.grid_columnconfigure(0, uniform="1", weight=1)
-        frame.grid_columnconfigure(1, uniform="1", weight=1)
-        frame.grid_rowconfigure(0)
         frame.pack(expand=True, fill=tk.BOTH)
 
-        box1 = Frame(frame, style="LightNeutral.TFrame", padding=20)
-        box1.grid(row=0, column=0, sticky=tk.NSEW, padx=(0, 10))
-        Label(box1, text="Messages received:", justify="left").pack(
-            pady=(spacing_y, spacing_y), side=tk.TOP, anchor=tk.NW)
-        Entry(box1, textvariable=self.temp_msg_count).pack(
-            pady=(spacing_y, spacing_y), side=tk.TOP, anchor=tk.NW)
-        Button(box1, text="Stop subscriber", command=lambda: IoTSimulator.stop_subscriber(1)).pack(
-            pady=(spacing_y, spacing_y), side=tk.TOP, anchor=tk.NW)
+        # Create title frame
+        title_frame = Frame(frame, style="LightNeutral.TFrame", padding=20)
+        title_frame.pack(fill=tk.X)
+        Label(title_frame, text="Temperature Sensor Thermometer", justify="left").pack(pady=(10, 0), anchor=tk.W)
 
-        box2 = Frame(frame, style="LightNeutral.TFrame", padding=20)
-        # col.pack(pady=(25, spacing_y), expand=True, fill=tk.X)
-        box2.grid(row=0, column=1, padx=(10, 0), sticky=tk.NSEW)
-        # col.configure()
-        Label(box2, text="Last message received:", justify="left").pack(
-            pady=(spacing_y, spacing_y), anchor=tk.NW)
-        
-        box_line = Frame(frame, style="LightNeutral.TFrame", padding=20)
-        box_line.grid(row=1, column=0, columnspan = 2, pady=15, sticky=tk.NSEW)
+        # Create thermometer frames
+        thermometer_frame1 = Frame(frame, style="LightNeutral.TFrame", padding=20)
+        thermometer_frame1.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        thermometer_frame2 = Frame(frame, style="LightNeutral.TFrame", padding=20)
+        thermometer_frame2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        thermometer_frame3 = Frame(frame, style="LightNeutral.TFrame", padding=20)
+        thermometer_frame3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        label_line = Label(box_line, text="Gauge Chart:", justify="left")
-        label_line.pack(pady=(spacing_y, spacing_y), anchor=tk.NW)
-        
-        self.canvas = Canvas(box_line, width=200, height=240, bg='white')
-        self.canvas.pack(fill="both", expand=True)
+        # Create thermometer bars
+        self.create_thermometer_bar(thermometer_frame1, "Outdoor Temperature")
+        self.create_thermometer_bar(thermometer_frame2, "LivingRoom Temperature")
+        self.create_thermometer_bar(thermometer_frame3, "GreenHouse Temperature")
 
-        temp_prev_msg = Label(box2, textvariable=self.temp_prev_msg, justify="left", wraplength=300)
-        temp_prev_msg.pack(pady=(spacing_y, spacing_y), ipadx=5, ipady=5, expand=True, fill=tk.BOTH)
-
+        # Initialize temperature variables
+        self.temp_msg_count = tk.IntVar()
+        self.temp_prev_msg = tk.StringVar()
 
     def on_sub1_message(self, topic, data):
-        i = self.temp_msg_count.get()
-        self.temp_msg_count.set(i + 1)
+    # Update temperature value
+        self.temp_msg_count.set(self.temp_msg_count.get() + 1)
         self.temp_prev_msg.set(f"{data}")
-        length = len(self.data_arr)
-        if length>30:
-            self.data_arr.pop(0)
+
+        # Update thermometer bar
+        self.update_thermometer(self.thermometer_frame1, data)
+        self.update_thermometer(self.thermometer_frame2, data)
+        self.update_thermometer(self.thermometer_frame3, data)
+        # i = self.temp_msg_count.get()
+        # self.temp_msg_count.set(i + 1)
+        # self.temp_prev_msg.set(f"{data}")
+        # length = len(self.data_arr)
+        # if length>30:
+        #     self.data_arr.pop(0)
  
-        self.data_arr.append(data["temperature"])
-        self.canvas.delete('all')
-        # Display Gauge
-        
+        # self.data_arr.append(data["temperature"])
+        # self.canvas.delete('all')
+
+    def update_thermometer(self, frame, value):
+        # Update marker position based on value
+        marker_pos = 220 - (value * 2)
+        self.canvas = frame.winfo_children()[1]  # Get the canvas
+        self.canvas.coords(self.marker, 100, 220, 100, marker_pos)    
 
 
     def on_sub2_message(self, topic, data):

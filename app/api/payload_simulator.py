@@ -20,7 +20,7 @@ def create_sequence(values, interval):
 
 class PayloadSimulator:
     counter = 0
-    data: list
+    data: list|None
     date_seq: list
     transmissions_missed: list[int]
     transmissions_send_gibberish: list[int]
@@ -32,22 +32,38 @@ class PayloadSimulator:
         self.date_seq = date_seq
         self.id_gen = sequence_gen(1000)
 
-        # Generate random sequence of tranmissions to "miss"
+        # Generate random sequence of transmissions to "miss"
+        miss_count = count // 100
         self.transmissions_missed = DataGenerator(
             "gaussian", aslist=True, count=count, decimals=0, gauss_config=GaussConfig(mean=100, std=20)).values
         self.transmissions_missed = create_sequence(
             self.transmissions_missed, 100)
 
+
+        # # Generate sequence of points where the generator should miss a whole series of transmissions
+        # # About every 150th trans
+        # miss_count = count // 150
+        # skip_blocks_start = DataGenerator(
+        #     "gaussian", aslist=True, count=miss_count, decimals=0, gauss_config=GaussConfig(mean=150, std=20)).values
+        # skip_number = DataGenerator("constant", value_range=[10,100], count=1)
+        # self.transmissions_skip_block = zip(
+        #     create_sequence(self.skip_blocks_start, 150),
+        #     skip_number
+        # )
+
+
     # Call the PayloadSimulator instance to generate the next payload
     def __call__(self):
-        if not self.data:
+        if self.data is None:
             return
 
         self.counter += 1
 
         # Pop next data and date value
         temp = self.data.pop()
-        date_val = self.date_seq.pop()
+        date_val = self.date_seq[0]
+        self.date_seq = self.date_seq[1:]
+
 
         payload_obj = Payload(
             id=self.id_gen.next(),
