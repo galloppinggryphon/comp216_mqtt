@@ -5,7 +5,7 @@ from tkinter.ttk import Button, Entry, Frame, Label, Style
 from typing import Callable
 from app.api.iot_simulator import IoTSimulator
 from app.gui.framework.tkwindow import TKWindow
-from app.config import theme_config, window_configs
+from app.config import theme_config, window_configs, device_config
 from tkinter import Canvas, BOTH
 
 spacing_y = 10
@@ -62,7 +62,8 @@ class ClientWindow1(TKWindow):
         box_line = Frame(frame, style="LightNeutral.TFrame", padding=20)
         box_line.grid(row=1, column=0, columnspan = 2, pady=15, sticky=tk.NSEW)
 
-        label_line = Label(box_line, text="Line Chart:", justify="left")
+        
+        label_line = Label(box_line, text=f"Line Chart: {device_config[0].name}", justify="left")
         label_line.pack(pady=(spacing_y, spacing_y), anchor=tk.NW)
         
         self.canvas = Canvas(box_line, width=200, height=240, bg='white')
@@ -71,34 +72,11 @@ class ClientWindow1(TKWindow):
         temp_prev_msg = Label(box2, textvariable=self.temp_prev_msg, justify="left", wraplength=300)
         temp_prev_msg.pack(pady=(spacing_y, spacing_y), ipadx=5, ipady=5, expand=True, fill=tk.BOTH)
 
-
     def on_sub1_message(self, topic, data):
         i = self.temp_msg_count.get()
         self.temp_msg_count.set(i + 1)
         self.temp_prev_msg.set(f"{data}")
-        length = len(self.data_arr)
-        if length>30:
-            self.data_arr.pop(0)
- 
-        self.data_arr.append(data["temperature"])
-        self.canvas.delete('all')
-
-        startX = 20
-        startY = 200
-        x_line_gap = 20
-        y_scale = 8
-        
-        # Draw dynamic data lines
-        for i in range(len(self.data_arr)-1):
-            #start point
-            x_line_start = startX + i * x_line_gap
-            y_line_start = startY - (self.data_arr[i])*y_scale
-            #end point
-            x_line_end = startX + (i+1) * x_line_gap
-            y_line_end = startY - (self.data_arr[i+1])*y_scale
-
-            self.canvas.create_line(x_line_start, y_line_start, x_line_end, y_line_end, width=2, fill='red')
-
+        self.create_line(data)
 
     def on_sub2_message(self, topic, data):
         i = self.temp_msg_count.get()
@@ -109,3 +87,39 @@ class ClientWindow1(TKWindow):
         self.window.destroy()
         IoTSimulator.stop_subscriber(1)
         logging.info("Closed Client 1")
+    
+    def create_line(self,data):
+        data_info= device_config[0]
+        min = data_info.data_config['value_range'][0]
+        max = data_info.data_config['value_range'][1]
+
+        length = len(self.data_arr)
+        
+        if length>30:
+            self.data_arr.pop(0)
+ 
+        self.data_arr.append(data["temperature"])
+        self.canvas.delete('all')
+
+        startX = 20
+        startY = 220
+        x_line_gap = 20
+        y_scale = 8
+
+        self.canvas.create_line(20,20,20,220,width=2, fill='black')
+        self.canvas.create_line(20,180,700,180,width=2, fill='black')
+
+        self.canvas.create_text(10,220,text=f'{min}')
+        self.canvas.create_text(10,20,text=f'{max}')
+
+        # Draw dynamic data lines
+        for i in range(len(self.data_arr)-1):
+            #start point
+            x_line_start = startX + i * x_line_gap
+            y_line_start = startY - (self.data_arr[i]-min)*y_scale
+            #end point
+            x_line_end = startX + (i+1) * x_line_gap
+            y_line_end = startY - (self.data_arr[i+1]-min)*y_scale
+
+            self.canvas.create_text(x_line_start,230,text=f"{i}")
+            self.canvas.create_line(x_line_start, y_line_start, x_line_end, y_line_end, width=2, fill='red')
