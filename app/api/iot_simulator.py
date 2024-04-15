@@ -130,7 +130,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         if sub:
             del sub
-            logging.info("Subscriber '{sub_id}' destroyed.")
+            logging.info(f"Subscriber '{sub_id}' destroyed.")
 
     def _subscriber_message_handler(self, on_message):
         def _message_handler(data):
