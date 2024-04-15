@@ -13,6 +13,7 @@ from app.config import theme_config, window_configs
 from app.config import device_config
 from app.gui.clients.client_window_1 import ClientWindow1
 from app.gui.clients.client_window_2 import ClientWindow2
+from app.gui.clients.client_window_3 import ClientWindow3
 from app.gui.device_window import DeviceWindow1
 from app.gui.framework.components.form_table import FormTable
 from app.gui.framework.tkwindow import TKWindow
@@ -75,6 +76,7 @@ class MainWindow(TKWindow):
 
         self.add_client(1)
         self.add_client(2)
+        self.add_client(3)
 
     def draw_device_table(self):
         container = Frame(self.frame)
@@ -152,6 +154,8 @@ class MainWindow(TKWindow):
                 self.open_window('ClientWindow1', ClientWindow1)
             case 2:
                 self.open_window('ClientWindow2', ClientWindow2)
+            case 3:
+                self.open_window('ClientWindow3', ClientWindow3)
 
     def open_device_window(self, device_id: int):
         device = device_config[device_id - 1]
