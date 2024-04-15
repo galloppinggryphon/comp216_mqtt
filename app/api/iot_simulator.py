@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from gc import callbacks
 import json
 import logging
 from time import sleep
@@ -11,12 +12,13 @@ from app.api.mqtt_publisher import MQTTPublisher
 from app.api.mqtt_subscriber import MQTTSubscriber
 from app.api.helpers.threadsafe_singleton_meta import ThreadsafeSingletonMeta
 from app.helpers.utils import list_find
-from app.config import device_config, mqtt_config
 
 
 @dataclass
 class PublisherListItem:
+    id: int
     name: str
+    topic: str
     config: IoTDeviceConfig
     client: MQTTPublisher
     stop: BoolSignal
@@ -25,11 +27,13 @@ class PublisherListItem:
 
 @dataclass
 class SubscriberListItem:
-    id: int
-    config: IoTDeviceConfig
+    id: str
+    # config: IoTDeviceConfig
     client: MQTTSubscriber
     stop: BoolSignal
     topics: set[str]
+    callbacks: list[Callable]
+    get_publishers: Callable[..., dict[str, PublisherListItem]]
 
 
 class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
@@ -53,23 +57,27 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         self.mqtt_config = mqtt_config
 
     ###### SUBSCRIBERS ######
-    def create_subscriber(self, sub_id: int, topics: list[str], on_message):
+    def create_subscriber(self, sub_id: str, topics: list[str]):
         sub = MQTTSubscriber(self.mqtt_config)
 
-        sub.set_callback(self._subscriber_message_handler(on_message))
         sub.set_options(log_message_received=True)
-        # topics: ['topic1', 'topic2'] => subscribe(topics[0], topics[1])
         sub.subscribe(*topics)
 
         list_item = SubscriberListItem(
             id=sub_id,
-            config=...,
+            # config=...,
             client=sub,
             stop=BoolSignal(True),
             topics=set(topics),
+            callbacks=[],
+            get_publishers=lambda: {topic: self.get_publisher_by_topic(topic) for topic in topics}
         )
 
         self.subscribers.append(list_item)
+
+        logging.info(f'Created subscriber: {list_item.id}')
+
+        return list_item
 
     def get_subscriber(self, sub_id: str) -> SubscriberListItem | None:
         sub = list_find(self.subscribers, False, lambda sub: sub.id == sub_id)
@@ -85,18 +93,22 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         sub.client.connect(asynchronous=True, loop=True)
 
-    def check_status(self):
-        sub = self.get_subscriber(1)
-        print(sub.client) # type: ignore
-        # print('is_alive', sub.worker.is_alive())
-        print(sub.client.connection_error) # type: ignore
+        return sub
+
+    def subscriber_add_callback(self, sub_id: str, on_message: Callable):
+        sub = self.get_subscriber(sub_id)
+        if not sub:
+            return
+
+        sub.client.set_callback(self._subscriber_message_handler(on_message))
+
 
     def subscriber_wait(self):
-        sub = self.get_subscriber(1) # type: ignore
-        sub.worker.wait() # type: ignore
+        sub = self.get_subscriber(1)  # type: ignore
+        sub.worker.wait()  # type: ignore
 
-    def stop_subscriber(self, sub_id: int):
-        sub = self.get_subscriber(sub_id) # type: ignore
+    def stop_subscriber(self, sub_id: str):
+        sub = self.get_subscriber(sub_id)  # type: ignore
 
         if not sub:
             logging.error(f"Cannot stop subscriber: #'{
@@ -110,6 +122,15 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         sub.client.disconnect()
         sub.client.loop_stop()
+
+        return sub
+
+    def destroy_subscriber(self, sub_id: str):
+        sub = self.stop_subscriber(sub_id)
+
+        if sub:
+            del sub
+            logging.info("Subscriber '{sub_id}' destroyed.")
 
     def _subscriber_message_handler(self, on_message):
         def _message_handler(data):
@@ -130,7 +151,9 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         pub = MQTTPublisher(self.mqtt_config, config.name)
         list_item = PublisherListItem(
+            id=config.id,
             name=config.name,
+            topic=config.topic,
             config=config,
             client=pub,
             stop=BoolSignal(True),
@@ -138,11 +161,23 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         )
         self.publishers.append(list_item)
 
+        logging.info(f'Created publisher: {list_item.name} (#{list_item.id})')
+
         return pub
 
     def get_publisher(self, pub_name: str) -> PublisherListItem | None:
         pub = list_find(self.publishers, False,
                         lambda pub: pub.name == pub_name)
+        return pub if pub else None
+
+    def get_publisher_by_id(self, pub_id: int) -> PublisherListItem | None:
+        pub = list_find(self.publishers, False,
+                        lambda pub: pub.id == pub_id)
+        return pub if pub else None
+
+    def get_publisher_by_topic(self, topic: str) -> PublisherListItem | None:
+        pub = list_find(self.publishers, False,
+                        lambda pub: pub.topic == topic)
         return pub if pub else None
 
     def is_publisher_running(self, pub_name: str):
@@ -153,28 +188,22 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
     def start_publisher(self, pub_name: str, on_complete_or_interrupted: Optional[Callable] = None):
         pub = self.get_publisher(pub_name)
 
-        if not pub:
-            # Try to create publisher
-            pub_config = list_find(device_config, False,
-                        lambda pub: pub.name == pub_name)
-            IoTSimulator.create_publisher(pub_config)
-
-            pub = self.get_publisher(pub_name)
-
-            # logging.error(f"Cannot start publisher: '{
-            #               pub_name}' does not exist.")
-            # pub.on_complete_or_interrupted()
-
         if on_complete_or_interrupted:
-            pub.on_complete_or_interrupted = on_complete_or_interrupted # type: ignore
+            pub.on_complete_or_interrupted = on_complete_or_interrupted  # type: ignore
+
+        if not pub:
+            logging.error(f"Cannot start publisher: '{
+                          pub_name}' does not exist.")
+            pub.on_complete_or_interrupted()
+            return
 
         def _start_publisher():
-            res = pub.client.connect() # type: ignore
+            res = pub.client.connect()  # type: ignore
             if res:
-                pub.stop.reset() # type: ignore
-                self.__publisher_loop(pub) # type: ignore
+                pub.stop.reset()  # type: ignore
+                self.__publisher_loop(pub)  # type: ignore
             else:
-                pub.on_complete_or_interrupted() # type: ignore
+                pub.on_complete_or_interrupted()  # type: ignore
 
         ThreadWorker(_start_publisher, background=True)
 
@@ -194,19 +223,30 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         pub.stop()
         pub.on_complete_or_interrupted()
 
-    # ATEFEH:
-    # Callback to send to the device window
-    # Make changes to the desired device_config[] IoTDeviceConfig global object
-    # new_config = {"title": str, "frequency": int, "value_range": (min, max)}
     def update_publisher_config(self, device_id: int, new_config):
-        device = device_config[device_id]
-        device.title = new_config['title']
-        device.frequency = new_config['frequency']
-        device.data_config['value_range'] = new_config['value_range']
-        ...
+        pub = self.get_publisher_by_id(device_id)
+
+        if not pub:
+            return
+
+        pub.config.title = new_config['title']
+        pub.config.frequency = new_config['frequency']
+        pub.config.data_config['value_range'] = new_config['value_range']
 
         # Regenerate device data
-        device.configure_payload()
+        pub.config.configure_payload()
+
+        logging.info(f"Configuration saved for Device {self.device_config.id}")
+
+    def publisher_get_payload_preview(self, pub_name: str):
+        pub = self.get_publisher(pub_name)
+
+        if not pub:
+            return
+
+        payload = pub.config.payload_generator()
+
+        return payload
 
     # Run this method threaded
     def __publisher_loop(self, pub: PublisherListItem):
