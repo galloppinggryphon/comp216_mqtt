@@ -1,6 +1,6 @@
 import logging
 import tkinter as tk
-from tkinter.ttk import Button, Entry, Frame, Label, Style
+from tkinter.ttk import Button, Entry, Frame, Label
 from app.api.helpers.iot_device_config import IoTDeviceConfig
 from app.api.iot_simulator import IoTSimulator
 from app.gui.framework.components.form_table import FormTable
@@ -21,21 +21,14 @@ class DeviceWindow1(TKWindow):
         self.device_config = device_config
         self.header.config(text=f"Configure {device_config.name}")
 
-
-        # ATEFEH:
-        # save save_config_handler to class
-        # save copy of relevant device_config data for the reset button
-        # Setup variables to hold Entry data, wire up initial data
-        # *******
         self.save_config_handler = save_config_handler
         self.original_config = {
             "title": self.device_config.title,
             "frequency": self.device_config.frequency,
             "value_range": self.device_config.data_config['value_range']
         }
-        # ********
 
-        self.temp_prev_msg = tk.StringVar(value="")
+        self.var_preview = tk.StringVar(value="")
 
         self.draw_main_section()
         self.draw_footer()
@@ -61,20 +54,16 @@ class DeviceWindow1(TKWindow):
         Button(bottom, text="Save Changes", style="Success.TButton", command=self.on_save).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
 
-        Button(bottom, text="Close", command=self.window.destroy).pack(
+        Button(bottom, text="Close", command=self.close).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
 
-        # ATEFEH: Reset data back to what it was when the window was opened
-        # You'll have to clone the relevant data data on window __init__ and save that
         Button(bottom, text="Reset", style="Warning.TButton", command=self.on_reset).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.RIGHT)
 
-    # ATEFEH: connect the Entry components below
-    # Could you also make the two value_range entry boxes equal width? They resisted my efforts
     def config_box(self):
         frame = self.main_frame
         form = FormTable(frame, 8) # {"style": "LightNeutral.TFrame"}
-        form.table.grid(row=0, column=0, sticky=tk.NSEW, padx=(0, 10))
+        form.frame.grid(row=0, column=0, sticky=tk.NSEW, padx=(0, 10))
 
         with form.addRow() as R:
             R.col1 = Label(R(), text="ID")
@@ -95,18 +84,14 @@ class DeviceWindow1(TKWindow):
         with form.addRow() as R:
             R.col1 = Label(R(), text="Title")
             R.col2 = Entry(R())
-            # ********
             self.title_entry = Entry(R.col2)
             self.title_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            # ********
 
         with form.addRow() as R:
             R.col1 = Label(R(), text="Frequency")
             R.col2 = Entry(R())
-            # ********
             self.frequency_entry = Entry(R.col2)
             self.frequency_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            # ********
 
         with form.addRow() as R:
             R.col1 = Label(R(), text="Value range (min-max)")
@@ -117,11 +102,6 @@ class DeviceWindow1(TKWindow):
             self.vmax = Entry(R.col2)
             self.vmax.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
 
-    # ATEFEH:
-    # This bit is optional - generate message output from the publisher
-    # Easiest way to receive data is simply call self.device_config.payload_generator()
-    # This is a destructive action - it removes the first value from the list of values
-    # so afterwards it's a good idea to call the save handler again (reset the data)
     def preview_box(self):
         frame = self.main_frame
 
@@ -131,19 +111,18 @@ class DeviceWindow1(TKWindow):
         Label(box, text="Output Preview", style="H3.TLabel", justify="left").pack(
             pady=(spacing_y, spacing_y), anchor=tk.NW)
 
-        temp_prev_msg = Label(box, textvariable=self.temp_prev_msg, justify="left", wraplength=300)
-        temp_prev_msg.pack(pady=(spacing_y, spacing_y), ipadx=5, ipady=5, expand=True, fill=tk.BOTH)
+        output = Label(box, textvariable=self.var_preview, justify="left",  wraplength=300, padding=5, background="white", anchor=tk.NW)
+        output.pack(pady=(spacing_y, spacing_y), expand=True, fill=tk.BOTH, side=tk.TOP)
 
-        preview_btn = Button(box, text="Generate output", command=self.window.destroy)
+        preview_btn = Button(box, text="Generate output", command=self.generate_output)
         preview_btn.pack(
-            padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.LEFT)
+            pady=(spacing_y, spacing_y), side=tk.LEFT)
 
-    # ATEFEH:
-    # Input validation
-    # Save data to save_config_handler(new_config)
-    # new_config format: {"title": str, "frequency": int, "value_range": (min, max)}
+    def generate_output(self):
+        payload = IoTSimulator.publisher_get_payload_preview(self.device_config.name)
+        self.var_preview.set(payload)
+
     def on_save(self):
-        # **********
         try:
             title = self.title_entry.get()
             frequency = float(self.frequency_entry.get())
@@ -158,10 +137,8 @@ class DeviceWindow1(TKWindow):
                 "value_range": (min_val, max_val)
             }
             self.save_config_handler(self.device_config.id, new_config)
-            logging.info(f"Configuration saved for Device {self.device_config.id}")
         except ValueError as e:
             logging.error(f"Error saving configuration: {e}")
-        # ************
 
     def on_reset(self):
         self.title_entry.delete(0, tk.END)
@@ -176,6 +153,6 @@ class DeviceWindow1(TKWindow):
         self.vmax.delete(0, tk.END)
         self.vmax.insert(0, self.original_config['value_range'][1])
 
-    def on_window_close_handler(self):
-        self.window.destroy()
+    def on_window_close_handler(self, window):
+
         logging.info(f"Closed Device {self.device_config.id}")

@@ -6,7 +6,7 @@ from tkinter.ttk import Frame
 
 class FormTable:
     __level = 0
-    table: Frame
+    frame: Frame
     parent: Frame | Toplevel | Tk
     num_rows: int
     current_row = 0
@@ -15,10 +15,11 @@ class FormTable:
 
     def __init__(self, parent: Frame | Toplevel | Tk, rows: int, settings: dict = ...):
         self.settings = {
-            "pad_y": 10,
             "sticky": tk.NSEW,
             "padding": 10,
-            "style": ""
+            "style": "",
+            "col_spacing": 10,
+            "row_spacing": 10
         }
         if settings is not ...:
             self.settings.update(settings)
@@ -26,7 +27,7 @@ class FormTable:
         self.parent = parent
         self.num_rows = rows
         self.rows = []
-        self.table = Frame(self.parent, style=self.settings["style"], padding=self.settings["padding"])
+        self.frame = Frame(self.parent, style=self.settings["style"], padding=self.settings["padding"])
         self.draw()
 
     def __enter__(self):
@@ -48,14 +49,14 @@ class FormTable:
         self.__level -= 1
 
     def draw(self):
-        table = self.table
+        table = self.frame
         table.grid_columnconfigure(0, uniform="1", weight=1)
         table.grid_columnconfigure(1, uniform="1", weight=1)
         table.grid_rowconfigure(self.num_rows)
 
     def addRow(self):
         self.current_row += 1
-        row = self.Row(self.table, self.current_row, self.settings)
+        row = self.Row(self.frame, self.current_row, self.settings)
 
         return row
 
@@ -76,18 +77,24 @@ class FormTable:
             return self.__col1
 
         @col1.setter
-        def col1(self, value: BaseWidget):
-            self.__col1 = value
-            self.__col1.grid(column=0, row=self.__row, sticky=self.__settings["sticky"], pady=self.__settings["pad_y"])
+        def col1(self, widget: BaseWidget):
+            self.__col1 = widget
+            self.__place_col(0, widget)
 
         @property
         def col2(self):
             return self.__col2
 
         @col2.setter
-        def col2(self, value: BaseWidget):
-            self.__col2 = value
-            self.__col2.grid(column=1, row=self.__row, sticky=self.__settings["sticky"], pady=self.__settings["pad_y"])
+        def col2(self, widget: BaseWidget):
+            self.__col2 = widget
+            self.__place_col(1, widget)
+
+        def __place_col(self, col: int, widget: BaseWidget):
+            col_spacing, row_spacing = self.__settings["col_spacing"], self.__settings["row_spacing"]
+            padx = (0, col_spacing) if col == 0 else 0
+            pady=(row_spacing/2, row_spacing/2)
+            widget.grid(column=col, row=self.__row, sticky=self.__settings["sticky"], padx=padx, pady=pady)
 
         def __enter__(self):
             return self
