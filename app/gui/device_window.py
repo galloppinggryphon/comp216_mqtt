@@ -19,19 +19,29 @@ class DeviceWindow1(TKWindow):
         logging.info(f"Opened Device {device_config.id}")
 
         self.device_config = device_config
+        self.header.config(text=f"Configure {device_config.name}")
+
 
         # ATEFEH:
         # save save_config_handler to class
         # save copy of relevant device_config data for the reset button
         # Setup variables to hold Entry data, wire up initial data
+        # *******
+        self.save_config_handler = save_config_handler
+        self.original_config = {
+            "title": self.device_config.title,
+            "frequency": self.device_config.frequency,
+            "value_range": self.device_config.data_config['value_range']
+        }
+        # ********
 
-        # self.temp_msg_count = tk.IntVar(value=0)
         self.temp_prev_msg = tk.StringVar(value="")
 
         self.draw_main_section()
         self.draw_footer()
 
         self.on_window_close(self.on_window_close_handler)
+        self.on_reset()
 
     def draw_main_section(self):
         frame = Frame(self.main)
@@ -56,7 +66,7 @@ class DeviceWindow1(TKWindow):
 
         # ATEFEH: Reset data back to what it was when the window was opened
         # You'll have to clone the relevant data data on window __init__ and save that
-        Button(bottom, text="Reset", style="Warning.TButton", command=lambda: ...).pack(
+        Button(bottom, text="Reset", style="Warning.TButton", command=self.on_reset).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.RIGHT)
 
     # ATEFEH: connect the Entry components below
@@ -85,19 +95,27 @@ class DeviceWindow1(TKWindow):
         with form.addRow() as R:
             R.col1 = Label(R(), text="Title")
             R.col2 = Entry(R())
+            # ********
+            self.title_entry = Entry(R.col2)
+            self.title_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            # ********
 
         with form.addRow() as R:
             R.col1 = Label(R(), text="Frequency")
             R.col2 = Entry(R())
+            # ********
+            self.frequency_entry = Entry(R.col2)
+            self.frequency_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            # ********
 
         with form.addRow() as R:
             R.col1 = Label(R(), text="Value range (min-max)")
             R.col2 = Frame(R())
-            vmax = Entry(R.col2)
-            vmax.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
+            self.vmin = Entry(R.col2, width=10)
+            self.vmin.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
             Label(R.col2, text=" - ").pack(side=tk.LEFT)
-            vmin = Entry(R.col2)
-            vmin.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, )
+            self.vmax = Entry(R.col2)
+            self.vmax.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
 
     # ATEFEH:
     # This bit is optional - generate message output from the publisher
@@ -125,9 +143,39 @@ class DeviceWindow1(TKWindow):
     # Save data to save_config_handler(new_config)
     # new_config format: {"title": str, "frequency": int, "value_range": (min, max)}
     def on_save(self):
-        ...
+        # **********
+        try:
+            title = self.title_entry.get()
+            frequency = int(self.frequency_entry.get())
+            min_val = float(self.vmin.get())
+            max_val = float(self.vmax.get())
+            if min_val >= max_val:
+                raise ValueError("Minimum value must be less than maximum value.")
+
+            new_config = {
+                "title": title,
+                "frequency": frequency,
+                "value_range": (min_val, max_val)
+            }
+            self.save_config_handler(self.device_config.id, new_config)
+            logging.info(f"Configuration saved for Device {self.device_config.id}")
+        except ValueError as e:
+            logging.error(f"Error saving configuration: {e}")
+        # ************
+
+    def on_reset(self):
+        self.title_entry.delete(0, tk.END)
+        self.title_entry.insert(0, self.original_config['title'])
+
+        self.frequency_entry.delete(0, tk.END)
+        self.frequency_entry.insert(0, self.original_config['frequency'])
+
+        self.vmin.delete(0, tk.END)
+        self.vmin.insert(0, self.original_config['value_range'][0])
+
+        self.vmax.delete(0, tk.END)
+        self.vmax.insert(0, self.original_config['value_range'][1])
 
     def on_window_close_handler(self):
         self.window.destroy()
-        IoTSimulator.stop_subscriber(1)
         logging.info(f"Closed Device {self.device_config.id}")
