@@ -1,12 +1,13 @@
 import logging
-from time import sleep
 import tkinter as tk
 from tkinter.ttk import Button, Entry, Frame, Label, Style
 from typing import Callable
 from app.api.iot_simulator import IoTSimulator
+from app.gui.framework.components.form_table import FormTable
 from app.gui.framework.tkwindow import TKWindow
 from app.config import theme_config, window_configs, device_config
-from tkinter import Canvas, BOTH
+
+from app.gui.subscriber_message_handler import SubscriberMessageHandler
 
 spacing_y = 10
 spacing_x = 10
@@ -15,84 +16,100 @@ class ClientWindow3(TKWindow):
     def __init__(self):
         super().__init__(False, window_configs.client_window_3, theme_config.ThemeConfig, theme_config.window_styles)
 
-        logging.info("Opened Client 1")
+        logging.info("Opened Client 3")
 
-        self.temp_msg_count = tk.IntVar(value=0)
-        self.temp_prev_msg = tk.StringVar(value="")
-        self.canvas = Canvas()
-        self.data_arr=[]
+        self.var_msg_count = tk.IntVar(value=0)
+        self.var_upd_count = tk.IntVar(value=0)
+        self.var_last_upd_id = tk.IntVar(value=0)
+        self.var_prev_msg = tk.StringVar(value="")
 
-        IoTSimulator.create_subscriber(1,[ '/temp/outdoor'], self.on_sub1_message)
-        IoTSimulator.start_subscriber(1)
+        # Must create a virtual event to ensure GUI updates are done from the main thread
+        # Otherwise the GUI will be prone to freeze
+        evt_sub1_on_message = self.bind_virtual_event("evt_sub1_on_message", self.on_sub1_message, True)
+        evt_sub1_on_interval = self.bind_virtual_event("evt_sub1_on_interval", self.on_sub1_interval, True)
 
-        IoTSimulator.create_subscriber(2,[ '/temp/living_room'], self.on_sub2_message)
-        IoTSimulator.start_subscriber(2)
-        IoTSimulator.create_subscriber(3,[ '/temp/greenhouse'], self.on_sub3_message)
-        IoTSimulator.start_subscriber(3)
+        self.sub1_mh = SubscriberMessageHandler(update_interval=3)
+        self.sub1_mh.add_interval_callback(evt_sub1_on_interval)
+        self.sub1_mh.add_message_received_callback(evt_sub1_on_message)
+        self.sub1 = IoTSimulator.create_subscriber(
+            "C3_1", ['/temp/outdoor'])
+        IoTSimulator.subscriber_add_callback("C3_1", self.sub1_mh.on_message())
+        IoTSimulator.start_subscriber("C3_1")
+
+
+
 
         self.main_section()
-
         self.on_window_close(self.on_window_close_handler)
 
     def main_section(self):
-        self.demo()
-
-    def demo(self):
-
         frame = Frame(self.main)
         frame.grid_columnconfigure(0, uniform="1", weight=1)
         frame.grid_columnconfigure(1, uniform="1", weight=1)
         frame.grid_rowconfigure(0)
         frame.pack(expand=True, fill=tk.BOTH)
 
-        box1 = Frame(frame, style="LightNeutral.TFrame", padding=20)
-        box1.grid(row=0, column=0, sticky=tk.NSEW, padx=(0, 10))
-        Label(box1, text="Messages received:", justify="left").pack(
-            pady=(spacing_y, spacing_y), side=tk.TOP, anchor=tk.NW)
-        Entry(box1, textvariable=self.temp_msg_count).pack(
-            pady=(spacing_y, spacing_y), side=tk.TOP, anchor=tk.NW)
-        Button(box1, text="Stop subscriber", command=lambda: IoTSimulator.stop_subscriber(1)).pack(
-            pady=(spacing_y, spacing_y), side=tk.TOP, anchor=tk.NW)
+        # COLUMN 1
+        box1 = Frame(frame, padding=0)
+        box1.grid(row=0, column=0, sticky=tk.NSEW, padx=(10, 10))
 
+        form = FormTable(box1, rows=8, settings={"padding": 0})
+        form.frame.pack(anchor=tk.NW, side=tk.TOP)
+
+        sub = IoTSimulator.get_subscriber("C3_1")
+
+        with form.addRow() as R:
+            R.col1 = Label(R(), text="Subscriber ID:")
+            R.col2 = Label(R(), text=self.sub1.id)
+
+        with form.addRow() as R:
+            R.col1 = Label(R(), text="Topics:")
+            R.col2 = Label(R(), text=str.join(", ", sub.topics))
+
+        with form.addRow() as R:
+            R.col1 = Label(R(), text="Messages received:")
+            R.col2 = Entry(R(), textvariable=self.var_msg_count)
+
+        with form.addRow() as R:
+            R.col1 = Label(R(), text="Update count:")
+            R.col2 = Entry(R(), textvariable=self.var_upd_count)
+
+        with form.addRow() as R:
+            R.col1 = Label(R(), text="Last update #:")
+            R.col2 = Entry(R(), textvariable=self.var_last_upd_id)
+
+        Button(box1, text="Stop subscriber", command=lambda: IoTSimulator.stop_subscriber("C3_1") and None).pack(anchor=tk.NW, pady=(20, 0))
+
+        # COLUMN 2
         box2 = Frame(frame, style="LightNeutral.TFrame", padding=20)
-        # col.pack(pady=(25, spacing_y), expand=True, fill=tk.X)
-        box2.grid(row=0, column=1, padx=(10, 0), sticky=tk.NSEW)
-        # col.configure()
+        box2.grid(row=0, column=1, padx=(10, 10), sticky=tk.NSEW)
         Label(box2, text="Last message received:", justify="left").pack(
             pady=(spacing_y, spacing_y), anchor=tk.NW)
-        
-        # box_line = Frame(frame, style="LightNeutral.TFrame", padding=20)
-        # box_line.grid(row=1, column=0, columnspan = 2, pady=15, sticky=tk.NSEW)
 
-        
-        # label_line = Label(box_line, text=f"Line Chart: {device_config[0].name}", justify="left")
-        # label_line.pack(pady=(spacing_y, spacing_y), anchor=tk.NW)
-        
-        # self.canvas = Canvas(box_line, width=200, height=240, bg='white')
-        # self.canvas.pack(fill="both", expand=True)
+        # prev_msg = Label(box2, textvariable=self.var_prev_msg, justify="left", wraplength=300)
+        # prev_msg.pack(pady=(spacing_y, spacing_y), ipadx=5, ipady=5, expand=True, fill=tk.BOTH)
 
-        temp_prev_msg = Label(box2, textvariable=self.temp_prev_msg, justify="left", wraplength=300)
-        temp_prev_msg.pack(pady=(spacing_y, spacing_y), ipadx=5, ipady=5, expand=True, fill=tk.BOTH)
+        prev_msg = Label(box2, textvariable=self.var_prev_msg, justify="left",  wraplength=300, padding=5, background="white", anchor=tk.NW)
+        prev_msg.pack(pady=(spacing_y, spacing_y), expand=True, fill=tk.BOTH, side=tk.TOP)
 
-    def on_sub1_message(self, topic, data):
-        i = self.temp_msg_count.get()
-        self.temp_msg_count.set(i + 1)
-        self.temp_prev_msg.set(f"{data}")
-        self.create_line(data)
 
-    def on_sub2_message(self, topic, data):
-        i = self.temp_msg_count.get()
-        self.temp_msg_count.set(i + 1)
-        self.temp_prev_msg.set(f"{data}")
+    # event.event_data: { "timecode": timecode, "data": data, "topic": topic }
+    def on_sub1_message(self, event: tk.Event):
+        # event_data = event.event_data
+        i = self.var_msg_count.get()
+        self.var_msg_count.set(i + 1)
 
-    def on_sub3_message(self, topic, data):
-        i = self.temp_msg_count.get()
-        self.temp_msg_count.set(i + 1)
-        self.temp_prev_msg.set(f"{data}")
+    # event.event_data: {"data": data, "queue": [] }
+    # data: { "timecode": timecode, "data": data, "topic": topic }
+    # queue: list of messages received since last GUI update
+    def on_sub1_interval(self, event: tk.Event): # data, message_queue):
+        data = event.event_data["data"]
+        i = self.var_upd_count.get()
+        self.var_upd_count.set(i + 1)
+        self.var_last_upd_id.set(data['id'])
+        self.var_prev_msg.set(f"{data}")
 
+    @staticmethod
     def on_window_close_handler(self):
-        self.window.destroy()
-        IoTSimulator.stop_subscriber(1)
-        logging.info("Closed Client 1")
-    
-
+        IoTSimulator.destroy_subscriber("C3_1")
+        logging.info("Closed Client 3")
