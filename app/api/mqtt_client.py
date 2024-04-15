@@ -46,7 +46,7 @@ class MQTTClient:
 
     def create_client_id(self, id: Optional[str] = None):
         _id = id if id else random.randint(*id_range)
-        return f"{self.mode}_{_id}"
+        return f"{self.mode[:3]}_{_id}"
 
     def connect(self, loop = False, asynchronous = False):
         self.loop = loop
