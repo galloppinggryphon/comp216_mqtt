@@ -42,7 +42,7 @@ class MainWindow(TKWindow):
         self.draw_footer()
 
     def draw_main_section(self):
-        frame = Frame(self.main)
+        frame = Frame(self.main, padding=10)
         frame.grid_columnconfigure(0, uniform=1)
         frame.grid_columnconfigure(1, uniform=1)
         frame.grid_rowconfigure(0)
