@@ -140,7 +140,9 @@ class TKWindow:
         self.window.mainloop()
 
     def close(self):
-        self._on_window_close()
+        for callback in self.window_close_callbacks:
+            callback(self)
+        self.window.destroy()
 
     def on_window_close(self, callback: Callable):
         self.window_close_callbacks.append(callback)
