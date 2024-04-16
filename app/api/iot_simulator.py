@@ -250,7 +250,6 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
     # Run this method threaded
     def __publisher_loop(self, pub: PublisherListItem):
         frequency, payload_generator, topic = pub.config.frequency, pub.config.payload_generator, pub.config.topic
-
         logging.info(f"Publisher '{pub.client.client_id}' is running")
 
         # Short loops to maintain responsiveness
@@ -278,7 +277,10 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
                 f"Publisher '{pub.client.client_id}': publish {round}")
 
             sleep_counter = 0
-            data = payload_generator()
+            data = self.__publisher_next_payload(pub.name, payload_generator)
+
+            if not data:
+                break
 
             # If data is empty, skip
             if data:
@@ -288,6 +290,16 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         pub.client.disconnect()
         pub.stop()
         pub.on_complete_or_interrupted()
+
+
+    def __publisher_next_payload(self, pub_name: str, payload_generator: Callable):
+        try:
+            return payload_generator()
+        except(IndexError):
+            logging.info(f"No more data for device {pub_name}: reached the end of data generated for the simulator.")
+
+
+
 
 
 # Init singleton

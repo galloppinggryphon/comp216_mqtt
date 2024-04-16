@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 from typing import Callable
 from app.api.data_generator import DataGenerator, DateTimeConfig, GaussConfig
 from app.api.helpers.sequence_gen import sequence_gen
@@ -20,7 +21,7 @@ def create_sequence(values, interval):
 
 class PayloadSimulator:
     counter = 0
-    data: list|None
+    data: list
     date_seq: list
     transmissions_missed: list[int]
     transmissions_send_gibberish: list[int]
@@ -35,13 +36,14 @@ class PayloadSimulator:
         # Generate random sequence of transmissions to "miss"
         miss_count = count // 100
         self.transmissions_missed = DataGenerator(
-            "gaussian", aslist=True, count=count, decimals=0, gauss_config=GaussConfig(mean=100, std=20)).values
+            "gaussian", aslist=True, count=miss_count, decimals=0, gauss_config=GaussConfig(mean=100, std=20)).values
         self.transmissions_missed = create_sequence(
             self.transmissions_missed, 100)
 
+        logging.debug(f'self.transmissions_missed {len(self.transmissions_missed) }')
 
-        # # Generate sequence of points where the generator should miss a whole series of transmissions
-        # # About every 150th trans
+        # Generate sequence of points where the generator should miss a whole series of transmissions
+        # About every 150th trans
         # miss_count = count // 150
         # skip_blocks_start = DataGenerator(
         #     "gaussian", aslist=True, count=miss_count, decimals=0, gauss_config=GaussConfig(mean=150, std=20)).values
@@ -60,15 +62,14 @@ class PayloadSimulator:
         self.counter += 1
 
         # Pop next data and date value
-        temp = self.data.pop()
+        value = self.data.pop()
         date_val = self.date_seq[0]
         self.date_seq = self.date_seq[1:]
-
 
         payload_obj = Payload(
             id=self.id_gen.next(),
             timecode=date_val,
-            temperature=temp
+            temperature=value
         )
 
         payload = self.simulate_errors(payload_obj)
@@ -78,6 +79,9 @@ class PayloadSimulator:
         return payload
 
     def simulate_errors(self, payload):
+        if not self.transmissions_missed:
+            return
+
         if self.counter == self.transmissions_missed[0]:
             self.transmissions_missed = self.transmissions_missed[1:]
             return
