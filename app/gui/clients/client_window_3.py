@@ -97,7 +97,7 @@ class ClientWindow3(TKWindow):
         i = self.var_msg_count.get()
         self.var_msg_count.set(i + 1)
 
-    # EventData {"data": data, "queue": [] }
+    # EventData {"data": data, "queue": [], "last_message_id": int }
     # data: { "timecode": timecode, "data": data, "topic": topic }
     # queue: list of messages received since last GUI update
     def on_sub1_interval(self, event: tk.Event): # data, message_queue):

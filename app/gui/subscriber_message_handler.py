@@ -8,6 +8,7 @@ from app.gui.framework.utils import format_iso_time, get_time_diff
 class SubscriberMessageHandler:
     _elapsed_intervals = 0
     _next_update: np.datetime64 = ...
+    _last_message_id: int
     _message_queue: list
     _update_interval: int
     _illegal_packets: list
@@ -58,11 +59,11 @@ class SubscriberMessageHandler:
             self._elapsed_intervals +=1
             logging.info(f"Subscriber interval #{self._elapsed_intervals} (message: #{data['id']}, time: {data['time_formatted']})")
 
-            self._next_update = get_time_diff(timecode, self._update_interval)
-
             for callback in self.__on_interval_callbacks:
-                callback({"data": data, "queue": self._message_queue})
+                callback({"data": data, "queue": self._message_queue, "last_message_id": self._last_message_id})
 
+            self._next_update = get_time_diff(timecode, self._update_interval)
+            self._last_message_id = data['id']
             self._message_queue = []
 
         return _on_message

@@ -156,7 +156,7 @@ class ClientWindow2(TKWindow):
         # widget["canvas"].coords(widget["marker"], 100, 220, 100, marker_pos)
 
 
-    # event.event_data: {"data": data, "queue": [] }
+    # event.event_data: {"data": data, "queue": [], "last_message_id": int  }
     # data: { "timecode": timecode, "data": data, "topic": topic }
     # queue: list of messages received since last GUI update
     def on_sub1_interval(self, event: tk.Event):
