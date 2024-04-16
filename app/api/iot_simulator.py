@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from gc import callbacks
 import json
 import logging
 from time import sleep
@@ -134,7 +133,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
     def _subscriber_message_handler(self, on_message):
         def _message_handler(data):
-            payload = json.loads(data['payload'])
+            payload = None if not data['payload'] else json.loads(data['payload'])
             timestamp = datetime.fromtimestamp(data['timestamp'])
             on_message(timestamp, data['topic'], payload)
 
@@ -236,7 +235,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         # Regenerate device data
         pub.config.configure_payload()
 
-        logging.info(f"Configuration saved for Device {self.device_config.id}")
+        logging.info(f"Configuration saved for Device {device_id}")
 
     def publisher_get_payload_preview(self, pub_name: str):
         pub = self.get_publisher(pub_name)
@@ -251,12 +250,17 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
     # Run this method threaded
     def __publisher_loop(self, pub: PublisherListItem):
         frequency, payload_generator, topic = pub.config.frequency, pub.config.payload_generator, pub.config.topic
-
         logging.info(f"Publisher '{pub.client.client_id}' is running")
 
         # Short loops to maintain responsiveness
         short_sleep = 0.1
-        short_cycles = frequency if frequency <= short_sleep else frequency / short_sleep
+        short_cycles = 1
+
+        if frequency <= short_sleep:
+            short_sleep = short_sleep ##TODO: Fix this bug
+        else:
+            short_cycles = frequency / short_sleep
+
         sleep_counter = 0
         round = 0
 
@@ -267,22 +271,35 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
                 sleep(short_sleep)  # Delay in seconds
                 continue
 
-            # TODO: This may be a place to simulate one of the failure modes
             round += 1
-            logging.info(
-                f"Publisher '{pub.client.client_id}': publish {round}")
-
             sleep_counter = 0
-            data = payload_generator()
+            data = self.__publisher_next_payload(pub.name, payload_generator)
 
-            # If data is empty, skip
+            # None means out of data, 0 means to simulate a skip
+            if data is None:
+                break
+
+            # If data is an empty value, skip
             if data:
+                logging.info(
+                    f"MQTT {pub.client.client_id}: publish #{round}")
+
                 pub.client.publish(topic, data)
 
         logging.info(f"Publisher '{pub.client.client_id}' stopped")
         pub.client.disconnect()
         pub.stop()
         pub.on_complete_or_interrupted()
+
+
+    def __publisher_next_payload(self, pub_name: str, payload_generator: Callable):
+        try:
+            return payload_generator()
+        except(IndexError):
+            logging.info(f"No more data for device {pub_name}: reached the end of data generated for the simulator.")
+
+
+
 
 
 # Init singleton

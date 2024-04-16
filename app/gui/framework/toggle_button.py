@@ -1,8 +1,9 @@
 import logging
-from tkinter import Event
+from tkinter import Event, EventType
 from tkinter.ttk import Button
 from typing import Optional, Callable
 
+from app.gui.framework.event_data import EventData
 from app.gui.framework.super_init import super_init
 
 type TToggleCallback = Callable[[bool, bool, Optional[bool], Optional[Event]], bool]
@@ -78,11 +79,11 @@ class ToggleButton(Button):
 
         # Built-in events
         for key in _bind_to:
-            self.bind(key, self._toggle_handler, "%d")  # type: ignore
+            self.bind(key, self._toggle_handler)  # type: ignore
 
     def trigger_toggle(self, new_state: Optional[bool] = None):
         logging.info('Trigger toggle virtual event')
-        Event.event_data = { "new_state": None if new_state is None else new_state } # type: ignore
+        EventData.set(id(self), self._virtual_event, new_state)
         self.event_generate(self._virtual_event)
 
     def _toggle_handler(self, event: Optional[Event] = None):
@@ -90,9 +91,8 @@ class ToggleButton(Button):
         set_toggled = None
         is_virtual_event = False
 
-        if event and 'event_data' in Event.__dict__ and Event.__dict__['event_data'] is not None:
-            set_toggled = Event.event_data['new_state'] # type: ignore
+        if event and event.type is EventType.VirtualEvent:
+            set_toggled = EventData.get(id(self), self._virtual_event)
             is_virtual_event = True
-            Event.event_data = None # type: ignore
 
         self._toggle(is_virtual_event = is_virtual_event, set_toggled = set_toggled, event = event)

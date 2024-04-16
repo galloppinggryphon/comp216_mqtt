@@ -37,7 +37,7 @@ class DeviceWindow1(TKWindow):
         self.on_reset()
 
     def draw_main_section(self):
-        frame = Frame(self.main)
+        frame = Frame(self.main, padding=10)
         self.main_frame = frame
         frame.grid_columnconfigure(0, uniform="1", weight=1)
         frame.grid_columnconfigure(1, uniform="1", weight=1)
@@ -105,7 +105,7 @@ class DeviceWindow1(TKWindow):
     def preview_box(self):
         frame = self.main_frame
 
-        box = Frame(frame, style="LightNeutral.TFrame", padding=20)
+        box = Frame(frame, style="MediumNeutral.TFrame", padding=20)
         box.grid(row=0, column=1, padx=(10, 0), sticky=tk.NSEW)
 
         Label(box, text="Output Preview", style="H3.TLabel", justify="left").pack(

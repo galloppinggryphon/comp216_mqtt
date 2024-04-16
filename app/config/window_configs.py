@@ -20,7 +20,7 @@ client_window_1 = WindowConfig(
 client_window_2 = WindowConfig(
     window_title="Client 2 - COMP216 MQTT Project",
     header_title="Client 2",
-    width=800,
+    width=850,
     height=600,
     background=ThemeConfig.background_colour
 )

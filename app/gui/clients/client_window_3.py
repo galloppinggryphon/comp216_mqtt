@@ -4,6 +4,7 @@ from tkinter.ttk import Button, Entry, Frame, Label, Style
 from typing import Callable
 from app.api.iot_simulator import IoTSimulator
 from app.gui.framework.components.form_table import FormTable
+from app.gui.framework.event_data import EventData
 from app.gui.framework.tkwindow import TKWindow
 from app.config import theme_config, window_configs, device_config
 
@@ -28,16 +29,13 @@ class ClientWindow3(TKWindow):
         evt_sub1_on_message = self.bind_virtual_event("evt_sub1_on_message", self.on_sub1_message, True)
         evt_sub1_on_interval = self.bind_virtual_event("evt_sub1_on_interval", self.on_sub1_interval, True)
 
-        self.sub1_mh = SubscriberMessageHandler(update_interval=3)
+        self.sub1_mh = SubscriberMessageHandler(update_interval=1)
         self.sub1_mh.add_interval_callback(evt_sub1_on_interval)
         self.sub1_mh.add_message_received_callback(evt_sub1_on_message)
         self.sub1 = IoTSimulator.create_subscriber(
             "C3_1", ['/temp/outdoor'])
         IoTSimulator.subscriber_add_callback("C3_1", self.sub1_mh.on_message())
         IoTSimulator.start_subscriber("C3_1")
-
-
-
 
         self.main_section()
         self.on_window_close(self.on_window_close_handler)
@@ -81,7 +79,7 @@ class ClientWindow3(TKWindow):
         Button(box1, text="Stop subscriber", command=lambda: IoTSimulator.stop_subscriber("C3_1") and None).pack(anchor=tk.NW, pady=(20, 0))
 
         # COLUMN 2
-        box2 = Frame(frame, style="LightNeutral.TFrame", padding=20)
+        box2 = Frame(frame, style="MediumNeutral.TFrame", padding=20)
         box2.grid(row=0, column=1, padx=(10, 10), sticky=tk.NSEW)
         Label(box2, text="Last message received:", justify="left").pack(
             pady=(spacing_y, spacing_y), anchor=tk.NW)
@@ -99,11 +97,13 @@ class ClientWindow3(TKWindow):
         i = self.var_msg_count.get()
         self.var_msg_count.set(i + 1)
 
-    # event.event_data: {"data": data, "queue": [] }
+    # EventData {"data": data, "queue": [], "last_message_id": int }
     # data: { "timecode": timecode, "data": data, "topic": topic }
     # queue: list of messages received since last GUI update
     def on_sub1_interval(self, event: tk.Event): # data, message_queue):
-        data = event.event_data["data"]
+        event_data = EventData.get(id(self), "evt_sub1_on_interval")
+        data = event_data["data"]
+
         i = self.var_upd_count.get()
         self.var_upd_count.set(i + 1)
         self.var_last_upd_id.set(data['id'])
