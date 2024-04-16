@@ -235,7 +235,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         # Regenerate device data
         pub.config.configure_payload()
 
-        logging.info(f"Configuration saved for Device {self.device_config.id}")
+        logging.info(f"Configuration saved for Device {device_id}")
 
     def publisher_get_payload_preview(self, pub_name: str):
         pub = self.get_publisher(pub_name)
