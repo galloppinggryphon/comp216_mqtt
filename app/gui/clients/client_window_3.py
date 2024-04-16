@@ -29,7 +29,7 @@ class ClientWindow3(TKWindow):
         evt_sub1_on_message = self.bind_virtual_event("evt_sub1_on_message", self.on_sub1_message, True)
         evt_sub1_on_interval = self.bind_virtual_event("evt_sub1_on_interval", self.on_sub1_interval, True)
 
-        self.sub1_mh = SubscriberMessageHandler(update_interval=3)
+        self.sub1_mh = SubscriberMessageHandler(update_interval=1)
         self.sub1_mh.add_interval_callback(evt_sub1_on_interval)
         self.sub1_mh.add_message_received_callback(evt_sub1_on_message)
         self.sub1 = IoTSimulator.create_subscriber(

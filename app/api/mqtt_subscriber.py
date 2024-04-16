@@ -110,9 +110,15 @@ class MQTTSubscriber(MQTTClient):
 
     @staticmethod
     def _parse_message(message: mqtt.MQTTMessage):
+        try:
+            payload = message.payload.decode("utf-8")
+        except:
+            payload = None
+            logging.error(f'Subscriber received a corrupt message from {message.topic} (timestamp: {message.timestamp}).')
+
         obj = {
             "topic": message.topic,
-            "payload": message.payload.decode("utf-8"),
+            "payload": payload,
             "timestamp": message.timestamp,
             "qos": message.qos,
         }
