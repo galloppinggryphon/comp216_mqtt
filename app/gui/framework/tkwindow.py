@@ -90,7 +90,7 @@ class TKWindow:
         top_pane = Frame(self.window, padding=10, style="HeaderPanel.TFrame")
         top_pane.grid(row=0, column=0, sticky=NSEW)
         self.__header = Label(
-            top_pane, text=self.window_config.header_title, style="H1.TLabel"  # type: ignore
+            top_pane, text=self.window_config.header_title, style="H1.TLabel", padding=20  # type: ignore
         )
         self.__header.pack(expand=True)
         self.__top = top_pane
