@@ -1,4 +1,7 @@
 import colorsys
+from datetime import datetime
+import numpy as np
+
 
 def clamp(num, min_val, max_val):
     return max(min_val, min(num, max_val))
@@ -44,3 +47,15 @@ def luminosity(hex: str, luminosity: int):
     l = clamp(l, 0, 1)
     rgb = [round(i * 255) for i in colorsys.hls_to_rgb(h, l, s)]
     return rgb_to_hex(*rgb)
+
+def get_time_diff(timestamp, interval):
+    time_span = interval
+    date_diff = np.timedelta64(time_span, "s")
+    timestamp_dt = np.datetime64(timestamp, "s")
+    return timestamp_dt + date_diff
+
+def format_time(timestamp: int, format: str):
+    return datetime.fromtimestamp(timestamp).strftime(format)
+
+def format_iso_time(timestamp: int):
+    return datetime.fromtimestamp(timestamp).isoformat()

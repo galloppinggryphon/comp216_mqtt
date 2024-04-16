@@ -1,7 +1,8 @@
-from datetime import datetime
 import logging
 from typing import Callable
 import numpy as np
+
+from app.gui.framework.utils import format_iso_time, get_time_diff
 
 
 class SubscriberMessageHandler:
@@ -35,7 +36,7 @@ class SubscriberMessageHandler:
             else:
                 should_update = self.compare_timestamps(self._next_update, timecode)
 
-            data['time_formatted'] = self.format_iso_time(data['timecode']) #self.format_time(data['timecode'], "%Y-%m-%d %H:%M:%S")
+            data['time_formatted'] = format_iso_time(data['timecode'])
 
             for callback in self.__on_message_received_callbacks:
                 _data = callback(data)
@@ -52,7 +53,7 @@ class SubscriberMessageHandler:
             self._elapsed_intervals +=1
             logging.info(f"Subscriber interval #{self._elapsed_intervals} (message: #{data['id']}, time: {data['time_formatted']})")
 
-            self._next_update = self.get_time_diff(timecode, self._update_interval)
+            self._next_update = get_time_diff(timecode, self._update_interval)
 
             for callback in self.__on_interval_callbacks:
                 callback({"data": data, "queue": self._message_queue})
@@ -65,18 +66,3 @@ class SubscriberMessageHandler:
     def compare_timestamps(time1, time2):
         time2_dt = np.datetime64(time2, "s")
         return time2_dt >= time1
-
-    @staticmethod
-    def get_time_diff(timestamp, interval):
-        time_span = interval
-        date_diff = np.timedelta64(time_span, "s")
-        timestamp_dt = np.datetime64(timestamp, "s")
-        return timestamp_dt + date_diff
-
-    @staticmethod
-    def format_time(timestamp: int, format: str):
-        return np.datetime64.item(timestamp).strftime(format)
-
-    @staticmethod
-    def format_iso_time(timestamp: int):
-        return datetime.fromtimestamp(timestamp).isoformat()
