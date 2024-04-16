@@ -133,7 +133,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
     def _subscriber_message_handler(self, on_message):
         def _message_handler(data):
-            payload = json.loads(data['payload'])
+            payload = None if not data['payload'] else json.loads(data['payload'])
             timestamp = datetime.fromtimestamp(data['timestamp'])
             on_message(timestamp, data['topic'], payload)
 
@@ -257,7 +257,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         short_cycles = 1
 
         if frequency <= short_sleep:
-            short_sleep = short_sleep
+            short_sleep = short_sleep ##TODO: Fix this bug
         else:
             short_cycles = frequency / short_sleep
 
@@ -271,19 +271,19 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
                 sleep(short_sleep)  # Delay in seconds
                 continue
 
-            # TODO: This may be a place to simulate one of the failure modes
             round += 1
-            logging.info(
-                f"Publisher '{pub.client.client_id}': publish {round}")
-
             sleep_counter = 0
             data = self.__publisher_next_payload(pub.name, payload_generator)
 
-            if not data:
+            # None means out of data, 0 means to simulate a skip
+            if data is None:
                 break
 
-            # If data is empty, skip
+            # If data is an empty value, skip
             if data:
+                logging.info(
+                    f"MQTT {pub.client.client_id}: publish #{round}")
+
                 pub.client.publish(topic, data)
 
         logging.info(f"Publisher '{pub.client.client_id}' stopped")

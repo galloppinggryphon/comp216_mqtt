@@ -10,6 +10,7 @@ class SubscriberMessageHandler:
     _next_update: np.datetime64 = ...
     _message_queue: list
     _update_interval: int
+    _illegal_packets: list
     __on_message_received_callbacks: list[Callable]
     __on_interval_callbacks: list[Callable]
 
@@ -35,6 +36,10 @@ class SubscriberMessageHandler:
                 should_update = True
             else:
                 should_update = self.compare_timestamps(self._next_update, timecode)
+
+            # Abort if payload is missing
+            if not data:
+                return
 
             data['time_formatted'] = format_iso_time(data['timecode'])
 
