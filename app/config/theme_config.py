@@ -6,28 +6,10 @@ from tkinter.ttk import Style
 from app.gui.framework.style_builder import StyleBuilder, WidgetTypes as W
 from app.gui.framework.utils import shade, tint
 
-# bootstrap = {
-#     "primary": "#158cba",
-#     "secondary": "#919191",
-#     "success": "#28b62c",
-#     "info": "#75caeb",
-#     "warning": "#ff851b",
-#     "danger": "#ff4136",
-#     "light": "#F6F6F6",
-#     "dark": "#555555",
-#     "bg": "#ffffff",
-#     "fg": "#555555",
-#     "selectbg": "#919191",
-#     "selectfg": "#ffffff",
-#     "border": "#ced4da",
-#     "inputfg": "#555555",
-#     "inputbg": "#fff",
-#     "active": "#e5e5e5",
-# }
-
 @dataclass
 class ThemeConfig:
-    theme = "default"  # "clam"
+    theme = "default"
+
     neutral = "#919191"
     primary = "#158cba"
     primary_complement = "black"
@@ -39,10 +21,14 @@ class ThemeConfig:
     active = "#e5e5e5"
     toggled = "#2b9600"
 
-    main_bg_colour = "#e0f7fa"
+    main_bg_colour = "#e0f7fa" #eaf2f8
     main_fg_colour = "#37474f"
-    secondary_bg_colour = "#b2dfdb"
+    secondary_bg_colour = "#154360" # "#b2dfdb"
+    secondary_fg_colour = "white"
     background_colour = "#e0f7fa"
+    light_neutral = "#d6eaf8"
+    medium_neutral = "#b2dfdb"
+
     default_font = ("Arial", 12)
     h1_font = ("Arial", 20, "bold")
     h2_font = ("Arial", 16, "bold")
@@ -149,6 +135,7 @@ def window_styles(style: Optional[Style] = None):
         with S.widget(W.Label, "H1") as S:
             S.style(
                 background=TC.secondary_bg_colour,
+                foreground=TC.secondary_fg_colour,
                 font=h1_font
             )
 
@@ -165,12 +152,24 @@ def window_styles(style: Optional[Style] = None):
             )
 
         with S.widget(W.Frame, "HeaderPanel") as S:
-            S.style(background=TC.secondary_bg_colour)
+            S.style(
+                background=TC.secondary_bg_colour,
+                foreground=TC.secondary_fg_colour,
+            )
 
+        with S.widget(W.Frame, "White") as S:
+            S.style(
+                background="white",
+            )
 
         with S.widget(W.Frame, "LightNeutral") as S:
             S.style(
-                background="#d6eaf8",
+                background=TC.light_neutral,
+            )
+
+        with S.widget(W.Frame, "MediumNeutral") as S:
+            S.style(
+                background=TC.medium_neutral,
             )
 
 
