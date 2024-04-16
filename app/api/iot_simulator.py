@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from gc import callbacks
 import json
 import logging
 from time import sleep
@@ -256,7 +255,13 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
 
         # Short loops to maintain responsiveness
         short_sleep = 0.1
-        short_cycles = frequency if frequency <= short_sleep else frequency / short_sleep
+        short_cycles = 1
+
+        if frequency <= short_sleep:
+            short_sleep = short_sleep
+        else:
+            short_cycles = frequency / short_sleep
+
         sleep_counter = 0
         round = 0
 
