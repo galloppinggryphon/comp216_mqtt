@@ -1,9 +1,11 @@
 from __future__ import annotations
+from queue import Queue
 from tkinter import Tk, NSEW, EW, Toplevel, Event, EventType
 from tkinter.ttk import Style, Frame, Label
 from typing import Any, Callable, Optional, Type, final
 
 from app.config.theme_config import ThemeConfig
+from app.gui.framework.event_data import EventData
 from app.gui.framework.window_config import WindowConfig
 
 
@@ -114,18 +116,19 @@ class TKWindow:
         Bind control events (keyboard, mouse, focus, etc) or virtual events to a callback.
         """
         event_key = f"<{event}>"
-        self.window.bind(event_key, callback, "%d") # type: ignore
+        self.window.bind(event_key, callback)
 
     def bind_virtual_event(self, event_name: str, callback: Callable, return_trigger = False):
         event_key = f"<<{event_name}>>"
         self.window.event_add(event_key, 'None')
-        self.window.bind(event_key, callback,"%d") # type: ignore
+        self.window.bind(event_key, callback)
 
         if return_trigger:
             return self.create_virtual_event_trigger(event_name)
 
     def trigger_virtual_event(self, event_name: str,  data: Optional[Any] = None):
-        Event.event_data = data # type: ignore
+        if data is not None:
+            EventData.set(id(self), event_name, data)
         self.window.event_generate(f"<<{event_name}>>")
 
     def create_virtual_event_trigger(self, event_name: str):
