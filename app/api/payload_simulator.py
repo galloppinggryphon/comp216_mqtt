@@ -76,11 +76,6 @@ class PayloadSimulator:
 
         self.transmissions_send_gibberish = [5,4,3,2]
 
-        logging.debug('***************************************')
-        logging.debug(f'transmissions_missed {self.transmissions_missed}')
-        logging.debug(f'transmissions_skip_blocks {self.transmissions_skip_blocks}')
-        logging.debug('***************************************')
-
 
     # Call the PayloadSimulator instance to generate the next payload
     def __call__(self):
