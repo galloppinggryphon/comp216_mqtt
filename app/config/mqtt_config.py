@@ -1,25 +1,15 @@
-from app.api.data_generator import DataGenerator, DateTimeConfig
+from app.api.data_generator import DataGenerator, DateTimeConfig, GaussConfig
 from app.api.helpers.iot_device_config import IoTDeviceConfig
-
 
 connection_settings = {
     "host": "localhost",
     "port": 1883,
-    # "keepalive": 60
-}
-
-
-##### CLIENT SETTINGS #####
-# TODO, MAYBE
-client1 = {
-    "id": 1,
 }
 
 
 ##### SHARED DEVICE CONFIG #####
-count = 1000
-# frequency = 1/10 # Delay between updates, in seconds
-frequency = 0.5  # DEBUGGING VALUE
+count = 10000
+frequency = 1/5  # Delay between updates, in seconds
 start_date_time = "2024-04-01 00:00"
 
 date_range = DataGenerator("dates", count=count, aslist=True, date_time_config=DateTimeConfig(
@@ -47,7 +37,6 @@ IoTDevice1 = IoTDeviceConfig(
     title="Outdoor",
     type="temperature",
     topic="/temp/outdoor",
-    # frequency=1/10, #Delay between updates, in seconds
     frequency=frequency,  # DEBUGGING VALUE
     data_config={
         "generator_type": "brownian",

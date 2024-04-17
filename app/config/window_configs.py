@@ -38,3 +38,10 @@ device_window_1 = WindowConfig(
     height=550,
     background=ThemeConfig.background_colour
 )
+about_window = WindowConfig(
+    window_title="About - COMP216 MQTT Project",
+    header_title="About",
+    width=500,
+    height=400,
+    background=ThemeConfig.background_colour
+)

@@ -21,6 +21,7 @@ class SubscriberMessageHandler:
         self.__on_message_received_callbacks = []
         self.__on_interval_callbacks = []
         self._update_interval = update_interval
+        self._last_message_id = 0
         logging.info(f"Subscriber update interval: {update_interval}s")
 
     #Triggered for every message

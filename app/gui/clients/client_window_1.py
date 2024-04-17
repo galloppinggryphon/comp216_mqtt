@@ -8,6 +8,7 @@ from app.gui.framework.tkwindow import TKWindow
 from app.config import theme_config, window_configs, device_config
 from tkinter import Canvas, BOTH
 from app.gui.subscriber_message_handler import SubscriberMessageHandler
+from app.gui.framework.event_data import EventData
 
 spacing_y = 10
 spacing_x = 10
@@ -79,14 +80,15 @@ class ClientWindow1(TKWindow):
 
     # event.event_data: { "timecode": timecode, "data": data, "topic": topic }
     def on_sub1_interval(self, event: tk.Event):
-        data = event.event_data["data"]
-        queue = event.event_data["queue"]
+        event_data = EventData.get(id(self), "evt_sub1_on_interval")
+        data = event_data["data"]
+        queue = event_data["queue"]
 
            
         #TODO: DATA FROM THE MESSAGE QUEUE MUST ALSO BE USED WHEN UPDATING THE CHART
         #NOTE: THE QUEUE DOES _NOT_ INCLUDE THE LAST MESSAGE
         #i.e. use data from [data, queue]
-        print('\n\nMESSAGE QUEUE:', queue, '\n\n')
+        # print('\n\nMESSAGE QUEUE:', queue, '\n\n')
 
         self.create_line1(data)
 
@@ -94,8 +96,8 @@ class ClientWindow1(TKWindow):
     # data: { "timecode": timecode, "data": data, "topic": topic }
     # queue: list of messages received since last GUI update
     def on_sub2_interval(self, event: tk.Event):
-        data = event.event_data["data"]
-
+        event_data = EventData.get(id(self), "evt_sub2_on_interval")
+        data = event_data["data"]
 
         self.create_line2(data)
 
@@ -119,6 +121,9 @@ class ClientWindow1(TKWindow):
         data_info= device_config[0]
         min = data_info.data_config['value_range'][0]
         max = data_info.data_config['value_range'][1]
+
+        frequency = data_info.frequency
+        messageid = data["id"]
 
         length = len(arr)
 

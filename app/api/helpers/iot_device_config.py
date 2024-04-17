@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 from typing import Any, Callable
 
 from app.api.payload_simulator import Payload, PayloadSimulator
@@ -29,7 +30,7 @@ class IoTDeviceConfig:
 
         # Create PayloadSimulator
         self.payload_generator = PayloadSimulator(
-            data=data,
-            count=self.data_config["count"],
-            date_seq=self.data_config["date_range"]
-        )
+                    data=data,
+                    count=self.data_config["count"],
+                    date_seq=self.data_config["date_range"]
+                )
