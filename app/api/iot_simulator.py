@@ -257,7 +257,7 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
         short_cycles = 1
 
         if frequency <= short_sleep:
-            short_sleep = short_sleep ##TODO: Fix this bug
+            short_sleep = frequency
         else:
             short_cycles = frequency / short_sleep
 
@@ -297,10 +297,6 @@ class _IoTSimulator(metaclass=ThreadsafeSingletonMeta):
             return payload_generator()
         except(IndexError):
             logging.info(f"No more data for device {pub_name}: reached the end of data generated for the simulator.")
-
-
-
-
 
 # Init singleton
 IoTSimulator = _IoTSimulator()
