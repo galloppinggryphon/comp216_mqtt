@@ -11,13 +11,14 @@ from app.api.helpers.iot_device_config import IoTDeviceConfig
 from app.api.iot_simulator import IoTSimulator
 from app.config import theme_config, window_configs
 from app.config import device_config
+from app.gui.about_window import AboutWindow
 from app.gui.clients.client_window_1 import ClientWindow1
 from app.gui.clients.client_window_2 import ClientWindow2
 from app.gui.clients.client_window_3 import ClientWindow3
 from app.gui.device_window import DeviceWindow1
 from app.gui.framework.components.form_table import FormTable
 from app.gui.framework.tkwindow import TKWindow
-from app.gui.framework.toggle_button import ToggleButton
+from app.gui.framework.components.toggle_button import ToggleButton
 
 spacing_y = 2
 spacing_x = 5
@@ -60,7 +61,7 @@ class MainWindow(TKWindow):
         Button(bottom, text="Quit", style="Warning.TButton", command=self.window.destroy).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.RIGHT)
 
-        Button(bottom, text="About", style="Success.TButton", command=lambda: ...).pack(
+        Button(bottom, text="About", style="Success.TButton", command=lambda: self.open_window('about', AboutWindow)).pack(
             padx=(spacing_x, spacing_x), pady=(spacing_y, spacing_y), side=tk.RIGHT)
 
     def draw_client_table(self):
