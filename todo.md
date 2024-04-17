@@ -1,8 +1,47 @@
 # TODO
 
+## Assignment checklist
+
+- [x] Broker
+
+### Publisher
+
+- [x] Publisher GUI
+  - [x] Change settings
+- [x] Configure and run multiple publishers
+- [x] Random data with pattern
+- [x] Data generator
+- [x] Packaging data
+  - [x] As JSON
+  - [x] With timestamp
+- [x] Submit data to broker
+  - [x] With topic
+  - [x] Missed transmissions
+- [x] Extras
+  - [x] Skip blocks
+  - [x] Transmit wild data
+  - [x] Value added (point out in video, e.g. configuration object, diagrams)
+
+### Subscriber
+
+- [x] Configure and run multiple subscribers
+- [x] Receiving data
+  - [x] Receive from broker
+  - [x] Decode data
+- [x] Handle data
+  - [x] Display data as text
+  - [x] Display data visually
+  - [x] Handle erroneous data
+  - [x] Handle missing data
+
+### Other
+
+- [x] Code quality
+- [ ] Video demo
+
 ## Devices configs (mqtt_config.py)
 
-`- `Configure three devices
+- Configure three devices
   - Locations: maybe outdoor (done) + living_room, bed_room?
   - Clone existing, add to `device_config` list
   - Data must be _"random with a pattern"_ - use the brownian generator (random with direction)
@@ -41,42 +80,3 @@
 - About button
 
 ---
-
-## Assignment checklist
-
-- [x] Broker
-
-### Publisher
-
-- [ ] Publisher GUI
-  - [ ] Change settings
-- [x] Configure and run multiple publishers
-- [x] Random data with pattern
-- [x] Data generator
-- [x] Packaging data
-  - [x] As JSON
-  - [x] With timestamp
-- [x] Submit data to broker
-  - [x] With topic
-  - [x] Missed transmissions
-- [ ] Extras
-  - [ ] Skip blocks
-  - [ ] Transmit wild data
-  - [x] Value added (point out in video, e.g. configuration object, diagrams)
-
-### Subscriber
-
-- [x] Configure and run multiple subscribers
-- [x] Receiving data
-  - [x] Receive from broker
-  - [x] Decode data
-- [ ] Handle data
-  - [ ] Display data as text
-  - [ ] Display data visually
-  - [ ] Handle erroneous data
-  - [ ] Handle missing data
-
-### Other
-
-- [ ] Code quality
-- [ ] Video demo
