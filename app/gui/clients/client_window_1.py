@@ -82,6 +82,7 @@ class ClientWindow1(TKWindow):
         data = event.event_data["data"]
         queue = event.event_data["queue"]
 
+           
         #TODO: DATA FROM THE MESSAGE QUEUE MUST ALSO BE USED WHEN UPDATING THE CHART
         #NOTE: THE QUEUE DOES _NOT_ INCLUDE THE LAST MESSAGE
         #i.e. use data from [data, queue]
@@ -112,7 +113,7 @@ class ClientWindow1(TKWindow):
 
         startX = 20
         startY = 220
-        x_line_gap = 20
+        x_line_gap = 50
         y_scale = 8
 
         data_info= device_config[0]
