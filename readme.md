@@ -2,7 +2,7 @@
 
 Project in COMP216, Centennial College, 2024.
 
-Python program that simulates IoT devices and client applications using the MQTT protocol.
+Python program that simulates IoT devices and client applications using the MQTT protocol and tkinter.
 
 [Click here to view the assignment (Word doc)](./Week_14_Final_project.docx).
 
@@ -15,6 +15,14 @@ Python program that simulates IoT devices and client applications using the MQTT
 
 ## Screenshots
 ![Screenshot of the main window](screenshots/main_window.png)
+
+![Screenshot of client 2](screenshots/screenshot_client_2.png)
+
+![Screenshot of client 3](screenshots/screenshot_client_3.png)
+
+![Screenshot of the client config window](screenshots/screenshot_config.png)
+
+![Screenshot of the about dialogue](screenshots/screenshot_about.png)
 
 ## Requirements
 
