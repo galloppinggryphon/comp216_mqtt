@@ -1,6 +1,5 @@
 __TMP__/
 .venv/
 ~~*
-__pycache__
-.vscode
+__*__
 *.bkp
