@@ -1,13 +1,26 @@
-# COMP216 MQTT PROJECT
+# MQTT Internet of Things Simulator
+
+Project in COMP216, Centennial College, 2024.
+
+Python program that simulates IoT devices and client applications using the MQTT protocol.
+
+[Click here to view the assignment (Word doc)](./Week_14_Final_project.docx).
+
+**Collaborators:**
+- [@amandasimire](https://github.com/amandasimire)
+- [@atefeharabi](https://github.com/atefeharabi)
+- [@ruolan89](https://github.com/ruolan89)
+- [@galloppinggryphon](https://github.com/galloppinggryphon)
+
+
+## Screenshots
+![Screenshot of the main window](screenshots/main_window.png)
 
 ## Requirements
 
 - **Minimum Python version: 3.12**
 - Recent version of VSCode, with the Python extension
 
-⚠️⚠️⚠️ NOT COMPATIBLE WITH THE **CODE RUNNER EXTENSION** FOR VSCODE ⚠️⚠️⚠️
-
-If you have Code Runner installed, it **must** be disabled for this project.
 
 ## Getting started with this repo
 
@@ -16,6 +29,10 @@ If you have Code Runner installed, it **must** be disabled for this project.
 3.  Create a virtualenv: `python -m venv .venv`
 4.  Install dependencies (Paho MQTT client):  `pip install -r requirements.txt`
 5.  Install Eclipse Mosquitto broker: [https://mosquitto.org/](https://mosquitto.org/)
+
+⚠️ NOT COMPATIBLE WITH THE **CODE RUNNER EXTENSION** FOR VSCODE ⚠️
+
+If you have Code Runner installed, it **must** be disabled for this project.
 
 ## Development aids for VSCode
 
@@ -39,14 +56,6 @@ Enable the formatter and isort in `.vscode/settings.json` (user or workspace) li
 
 1.  Make sure mosquitto is running: `mosquitto` or `mosquitto -v` (verbose)
 2.  Run `python main.py` in the `app` folder
-
-# Resources
-
-- Quick start (_not updated for v2_): [https://pypi.org/project/paho-mqtt/](https://pypi.org/project/paho-mqtt/)
-- Full documentation: [https://eclipse.dev/paho/files/paho.mqtt.python/html/client.html](https://eclipse.dev/paho/files/paho.mqtt.python/html/client.html)
-- [http://www.steves-internet-guide.com/mqtt-python-callbacks/](http://www.steves-internet-guide.com/mqtt-python-callbacks/)
-- [http://www.steves-internet-guide.com/python-mqtt-client-changes/](http://www.steves-internet-guide.com/python-mqtt-client-changes/)
-- [http://www.steves-internet-guide.com/client-connections-python-mqtt/](http://www.steves-internet-guide.com/client-connections-python-mqtt/)
 
 # Package structure
 
