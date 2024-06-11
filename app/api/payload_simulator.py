@@ -78,6 +78,7 @@ class PayloadSimulator:
 
 
     # Call the PayloadSimulator instance to generate the next payload
+    def __call__(self):
         if self.data is None:
             # Return nothing
             return
